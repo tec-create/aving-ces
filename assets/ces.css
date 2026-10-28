@@ -1,0 +1,69 @@
+/*
+ * CES Archive 추가 스타일
+ * 기본 디자인은 GIF.News 의 style.css 를 그대로 쓰고, CES 사이트에만 필요한 것만 여기에 덧붙입니다.
+ * (style.css 를 GIF 와 같이 유지하면 나중에 GIF 디자인을 고쳤을 때 복사만 하면 됩니다)
+ */
+:root {
+  --ces: #4fbccf;        /* 최신 연도 강조 (GIF 의 2027 색) */
+}
+
+/* 로고 이미지: assets/logo-header.png (배경 투명) 하나를 상단과 푸터에 같이 씀
+ * 크기 — 상단: 폭 250px / 푸터: 높이 80px (모바일 72px) */
+.brand { display: inline-block; line-height: 0; }
+.brand img { width: 250px; height: auto; max-width: 100%; }
+.brand--foot img { width: auto; height: 80px; }
+@media (max-width: 560px) { .brand--foot img { height: 72px; } }
+
+/* (이전 글자 로고 — 지금은 쓰지 않음) */
+.wordmark { display: inline-grid; gap: 6px; line-height: 1; }
+.wordmark__main { font: 700 54px/1 var(--f-head); letter-spacing: -.02em; color: var(--ink); }
+.wordmark__main b { color: var(--blue); }
+.wordmark__sub { font: 600 var(--fs-xs)/1 var(--f-label); text-transform: uppercase; letter-spacing: .28em; color: var(--ink-3); }
+.wordmark--sm .wordmark__main { font-size: 30px; }
+@media (max-width: 560px) { .wordmark__main { font-size: 40px; } }
+
+/* 태그 */
+.tag--new { color: var(--ces); }
+.tag--award { color: var(--gold); margin-left: 6px; }
+
+/* 이미지가 없을 때: 그 기사의 행사 연도("CES 2011")를 글자로 */
+.ph--none::after { content: attr(data-y); font-size: clamp(14px, 2.2vw, 26px); letter-spacing: -.01em; color: #3a4658; }
+.ph--sq.ph--none::after, .rows .ph--none::after { font-size: 13px; }
+
+/* 영상 팝업 아래 링크 두 개 */
+.modal__links { display: flex; gap: 18px; }
+.modal__links a { font: 600 var(--fs-xs) var(--f-label); letter-spacing: var(--track-label); color: var(--cyan); }
+
+/* 기사 상세 맨 위 영상 */
+.art__video { margin-top: 28px; }
+
+/* 연도 탭이 21개라 촘촘하게 */
+.tabs a { padding: 5px 11px; }
+
+/* 홈 띠: 영상 대신 수상 기사 카드 4개 */
+.band__cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 24px; }
+.band .card h4 { color: var(--band-ink); }
+.band .card a:hover h4 { color: var(--cyan); }
+@media (max-width: 1024px) { .band__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* 사이드바: 연도별 건수 */
+.yearlist li { border-bottom: 1px solid var(--rule); }
+.yearlist a { display: flex; justify-content: space-between; align-items: baseline; padding-block: 11px; font: 600 var(--fs-sm) var(--f-label); letter-spacing: var(--track-label); }
+.yearlist li:first-child a { padding-top: 0; }
+.yearlist b { font: 600 var(--fs-xs) var(--f-label); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.yearlist a:hover span { color: var(--blue); }
+
+/* 연도 탭 안의 건수 */
+.tabs small { font-weight: 500; opacity: .65; margin-left: 2px; }
+
+/* 목록 "더 보기" */
+.pager { display: flex; justify-content: center; padding-top: 32px; }
+.pager__btn { font: 600 var(--fs-sm) var(--f-label); letter-spacing: var(--track-label); color: var(--ink); border: 1px solid var(--rule); padding: 10px 28px; text-align: center; }
+.pager__btn:hover { border-color: var(--blue); color: var(--blue); }
+.pager__btn:disabled { opacity: .5; cursor: progress; }
+
+/* 본문이 없는 기사: 원문으로 가는 버튼 */
+.art__cta a { display: inline-block; font: 600 var(--fs-sm) var(--f-label); letter-spacing: var(--track-label); color: #fff; background: var(--blue); padding: 10px 18px; }
+.art__cta a:hover { filter: brightness(1.1); }
+
+.loading { padding: 80px 0; color: var(--ink-3); text-align: center; }

@@ -1,0 +1,9 @@
+# Vercel 연결 정보 (PC마다 다름)
+.vercel
+# 지금 사이트에서 쓰지 않는 로고 파일 (GIF에서 복사해 온 것, 이전 푸터 로고, 로고 원본)
+assets/logo.png
+assets/logo-dark.png
+assets/logo-footer.png
+AVINGCES_logo.png
+# 파이썬 캐시
+__pycache__/

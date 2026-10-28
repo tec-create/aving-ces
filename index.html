@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121a26">
+<title>AVING CES · CES Issue Discovery Hub</title>
+<meta name="description" content="Every CES story from AVING USA, organized by CES edition: Innovation Awards, pavilions, CES Unveiled and on-site interviews.">
+<meta property="og:title" content="AVING CES · CES Issue Discovery Hub">
+<meta property="og:image" content="assets/logo-header.png">
+<meta property="og:description" content="Every CES story from AVING USA, organized by CES edition.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/ces.css">
+</head>
+<body>
+
+<!-- ① 유틸리티 바: 날짜 · 업데이트 시각 · 검색 -->
+<div class="util">
+  <div class="wrap util__in">
+    <span id="today" class="util__date"></span>
+    <span class="util__upd">Updated <b id="updated"></b></span>
+    <form class="search" id="searchForm" role="search">
+      <label for="q" class="sr">Search CES stories</label>
+      <input id="q" type="search" placeholder="Search company, product…" autocomplete="off">
+      <button type="submit" aria-label="Search">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ② 마스트헤드: 로고 (assets/logo-header.png, 배경 투명) -->
+<header class="mast">
+  <div class="wrap mast__in">
+    <a href="#" class="brand" aria-label="AVING CES home">
+      <img src="assets/logo-header.png" width="826" height="316" alt="AVING CES — CES Issue Discovery Hub. 2006-2026, 5,100+ CES articles, 21 years of coverage">
+    </a>
+    <p class="mast__tag">Every CES story we've covered,<br> <em>edition by edition.</em></p>
+  </div>
+</header>
+
+<!-- ③ 섹션 메뉴 (상단 고정) -->
+<nav class="gnb" aria-label="Sections">
+  <div class="wrap gnb__in" id="gnb"></div>
+</nav>
+
+<main class="wrap" id="app"><p class="loading">Loading stories…</p></main>
+
+<!-- ⑤ 푸터 -->
+<footer class="foot">
+  <div class="wrap foot__in">
+    <div>
+      <a href="#" class="brand brand--foot" aria-label="AVING CES home"><img src="assets/logo-header.png" width="826" height="316" alt="AVING CES — CES Issue Discovery Hub"></a>
+      <p class="foot__note">An archive of CES coverage by <a href="https://us.aving.net" target="_blank" rel="noopener">AVING USA</a>. CES® is a registered trademark of the Consumer Technology Association; this site is not affiliated with CTA.</p>
+    </div>
+    <nav class="foot__links" id="footNav" aria-label="Footer sections"></nav>
+    <div class="foot__src">
+      <a href="https://us.aving.net" target="_blank" rel="noopener">us.aving.net</a>
+      <a href="https://www.youtube.com/@avingusa" target="_blank" rel="noopener">YouTube @avingusa</a>
+    </div>
+  </div>
+  <div class="wrap foot__copy">© AVING NEWS. All rights reserved.</div>
+</footer>
+
+<!-- 영상 재생 팝업 -->
+<div class="modal" id="modal" hidden>
+  <div class="modal__box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <button class="modal__x" id="modalClose" aria-label="Close video">×</button>
+    <div class="modal__player" id="player"></div>
+    <div class="modal__meta">
+      <h3 id="modalTitle"></h3>
+      <span class="modal__links"><a id="modalStory" href="#">Read the story →</a><a id="modalLink" target="_blank" rel="noopener">Watch on YouTube ↗</a></span>
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

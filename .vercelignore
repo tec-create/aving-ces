@@ -1,0 +1,9 @@
+# 사이트에 필요 없는 파일 (GitHub에는 올라가지만 Vercel 사이트에는 안 올라감)
+README.md
+배포가이드.md
+source
+tools
+assets/logo.png
+assets/logo-dark.png
+assets/logo-footer.png
+AVINGCES_logo.png
