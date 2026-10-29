@@ -14,6 +14,7 @@ CES/
 ├─ index.html            페이지 뼈대
 ├─ assets/style.css      GIF.News 디자인 그대로 (GIF에서 고치면 복사만 하면 됨)
 ├─ assets/ces.css        CES 사이트에만 필요한 추가 스타일 (글자 로고, 더보기 버튼 등)
+├─ assets/home.css       메인(홈) 화면 전용 디자인 (블랙 · 로고 빨강 #ed3840 · Archivo 폰트)
 ├─ assets/app.js         화면 그리는 스크립트
 ├─ data/                 ← tools/build_data.py 가 자동으로 만드는 폴더 (직접 고치지 않음)
 │  ├─ meta.json          갱신 시각, 연도별·태그별 건수
@@ -60,5 +61,7 @@ GIF와 같은 방식(GitHub `tec-create/aving-ces` + Vercel `aving-ces`)입니�
 
 ## 주의
 - 사이트와 변환 스크립트는 에이빙 서버에 접속하지 않습니다. 썸네일·요약(`source/thumbs.json`)은 2026-10-27에 기사당 1.5초 간격으로 한 번 모아 둔 것이고, 새 기사의 사진은 관리자 엑셀(대표이미지 열)로 채우는 걸 권장합니다 (IP 차단 위험).
-- 로고: `assets/logo-header.png`(투명 배경) 하나를 상단(폭 250px)과 푸터(높이 80px, 모바일 72px)에 같이 씁니다. 크기는 `ces.css`의 `.brand` 에서 조절합니다.
+- 메인(홈) 화면만 새 디자인입니다. 홈일 때 `<html class="is-home">` 이 붙어 `home.css` 의 새 헤더/푸터가 보이고, 목록·기사 화면은 기존 헤더/푸터와 GIF.News 디자인 그대로입니다. 홈 화면 내용은 `app.js` 의 `home()`, 애니메이션은 `homeInit()` 에 있습니다.
+- 메인 로고: `assets/logo-aving-ces-dark.png`(어두운 바탕용, 흰 AVING) / `logo-aving-ces-light.png`(밝은 바탕용, 검정 AVING). 원본은 그대로 두고 잘라낸 파일을 씁니다 — 헤더: 워드마크만 `logo-mark-dark.png` / 푸터: 같은 `logo-mark-dark.png` 에 빨간 선 · CES DISCOVERY HUB · 숫자 줄 · 고지 문구를 텍스트로 붙여 왼쪽 정렬 (원본의 가운데 정렬 묶음은 쓰지 않음). `-light` 는 밝은 화면용 예비.
+- 로고(목록·기사 화면): `assets/logo-header.png`(투명 배경) 하나를 상단(폭 250px)과 푸터(높이 80px, 모바일 72px)에 같이 씁니다. 크기는 `ces.css`의 `.brand` 에서 조절합니다.
 - CES® 로고는 CTA 상표라 사용하지 않았습니다.

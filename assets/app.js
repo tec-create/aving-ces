@@ -146,87 +146,324 @@
     });
   }
 
-  /* ---------- 홈 ---------- */
-  function home() {
-    // 톱기사: 최신 10건 중 사진(또는 영상 썸네일)이 있는 첫 기사
-    var top = IDX.slice(0, 10).filter(function (a) { return thumb(a); })[0] || IDX[0];
-    var heads = IDX.filter(function (a) { return a !== top; }).slice(0, 4);
-    var vids = IDX.filter(function (a) { return a.yt; });
-    // 많이 본 기사: 최신 연도에서 조회수 순
-    var mostRead = IDX.filter(function (a) { return a.y === newest(); }).sort(function (a, b) { return b.v - a.v; }).slice(0, 8);
-    var ny = newest();
-    // 띠: 가장 최근 연도의 Innovation Awards 기사 (없으면 그 전 연도)
-    var awardYear = META.years.map(function (o) { return o.y; }).filter(function (y) {
-      return IDX.some(function (a) { return a.y === y && has(a, "awards"); });
-    })[0];
-    var awards = IDX.filter(function (a) { return a.y === awardYear && has(a, "awards"); });
-    var pav = IDX.filter(function (a) { return has(a, "pavilion"); });
-    var unv = IDX.filter(function (a) { return has(a, "unveiled"); });
-    var itv = IDX.filter(function (a) { return has(a, "interview"); });
+  /* ---------- 홈 (assets/home.css) ----------
+   * 히어로(기사 1건 = 사각형 1칸 배경) → 스크롤하면 커지는 대표 영상 → 최근 기사 띠
+   * → Latest → Innovation Awards → Video → 연도 막대 → 주제 → 많이 본 기사
+   * 화면을 그린 뒤 homeInit() 이 애니메이션(카운트업 · 스크롤 등장 · 배경 격자 등)을 붙입니다. */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var HP = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
 
-    return withLeads([top, pav[0]].filter(Boolean)).then(function () {
+  function hImg(a) {
+    var s = thumb(a);
+    return '<div class="h-card__img' + (s ? "" : " is-none") + '" data-y="CES ' + a.y + '">' +
+      (s ? '<img src="' + esc(s) + '" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'is-none\');this.remove()">' : "") + "</div>";
+  }
+  function hCard(a, i, big) {
+    return '<a class="h-card h-rv' + (big ? " h-card--big" : "") + '" style="--i:' + i + '" href="#article-' + a.id + '">' +
+      (has(a, "awards") ? '<span class="h-badge">CES ' + a.y + " Honoree</span>" : "") +
+      (a.yt ? '<span class="h-badge h-badge--yt">▶ Video</span>' : "") + hImg(a) +
+      '<div class="h-card__body"><span class="h-label h-label--coral">CES ' + a.y + (a.sec ? " · " + esc(a.sec) : "") + "</span>" +
+      "<h3>" + esc(short(a.t)) + "</h3>" + (big && lead(a) ? "<p>" + esc(lead(a)) + "</p>" : "") +
+      '<div class="h-card__foot"><small>' + esc(a.by) + (a.by ? " · " : "") + day(a) + '</small><span class="h-go" aria-hidden="true">→</span></div></div></a>';
+  }
+  function home() {
+    var ny = newest();
+    var vids = IDX.filter(function (a) { return a.yt; });
+    var feat = vids.filter(function (a) { return a.img; })[0] || vids[0];          // 대표 영상: 사진이 있는 최신 영상 기사
+    var latest = IDX.filter(function (a) { return thumb(a); }).slice(0, 5);
+    var aw = IDX.filter(function (a) { return has(a, "awards") && thumb(a) && latest.indexOf(a) < 0; });
+    // 많이 본 기사: 최신 연도 (기사가 8건이 안 되면 그 전 연도까지)
+    var pool = IDX.filter(function (a) { return a.y === ny; }), mostLabel = "CES " + ny;
+    if (pool.length < 8) { pool = IDX.filter(function (a) { return a.y >= ny - 1; }); mostLabel = "CES " + (ny - 1) + "–" + ny; }
+    var most = pool.slice().sort(function (a, b) { return b.v - a.v; }).slice(0, 8);
+    var yrs = META.years.slice().reverse();
+    var max = Math.max.apply(null, yrs.map(function (o) { return o.n; }));
+    var topics = [
+      { tag: "pavilion", name: "Pavilions", desc: "Seoul, K-Startup, Gyeonggi and the national pavilions bringing Korean tech to Las Vegas." },
+      { tag: "unveiled", name: "CES Unveiled", desc: "First looks from the media preview, days before the show opens." },
+      { tag: "interview", name: "Interviews", desc: "Founders and organizers, on the record from the show floor." }
+    ];
+    var ticker = IDX.slice(0, 12).map(function (a) { return '<a href="#article-' + a.id + '"><b>CES ' + a.y + "</b><span>" + esc(short(a.t)) + "</span></a>"; }).join("");
+
+    return withLeads([latest[0]].filter(Boolean)).then(function () {
       return "" +
-        '<section class="lead">' +
-          '<article class="lead__top">' +
-            link(top, ph(top) + '<div class="lead__txt"><div>' + kicker(top) + "</div><h1>" + esc(top.t) + "</h1>" +
-              (lead(top) ? "<p>" + esc(lead(top)) + "</p>" : "") + meta(top) + "</div>") +
-          "</article>" +
-          '<div class="lead__side"><div class="lead__h"><h2>Latest</h2><a class="more" href="#latest">All →</a></div>' +
-          '<ol class="lead__list">' + heads.map(function (a) {
-            return "<li>" + link(a, '<div class="lead__li-t"><div>' + kicker(a) + "</div><h3>" + esc(short(a.t)) + "</h3>" + meta(a) + "</div>" + ph(a, "ph--sq")) + "</li>";
-          }).join("") + "</ol></div>" +
+        // ① 히어로
+        '<section class="h-hero" id="hHero">' +
+          '<canvas id="hField" aria-hidden="true"></canvas>' +
+          '<div class="h-wrap h-hero__in">' +
+            '<span class="h-hero__eyebrow h-fade" style="--d:.1s">AVING CES archive · ' + META.years[META.years.length - 1].y + "–" + ny + "</span>" +
+            '<h1><span class="ln"><span>' + (ny - META.years[META.years.length - 1].y) + ' years of CES,</span></span><span class="ln"><span><b>on file.</b></span></span></h1>' +
+            '<div class="h-hero__row">' +
+              '<div class="h-fade" style="--d:.5s">' +
+                '<p class="h-hero__lede">Every CES story AVING has covered since ' + META.years[META.years.length - 1].y + ": Innovation Awards, national pavilions, CES Unveiled and on-site interviews, filed edition by edition.</p>" +
+                '<div class="h-hero__cta"><a class="h-btn h-btn--coral" href="#year-' + ny + '">Explore CES ' + ny + '</a><button class="h-btn h-btn--line" data-scroll="hRoad">Browse by year</button></div>' +
+              "</div>" +
+              '<div class="h-stats h-fade" style="--d:.7s">' +
+                '<div class="h-stat"><b data-count="' + META.total + '">0</b><span>Stories</span></div>' +
+                '<div class="h-stat"><b data-count="' + META.videos + '">0</b><span>Videos</span></div>' +
+                '<div class="h-stat"><b data-count="' + META.years.length + '">0</b><span>Editions</span></div>' +
+              "</div>" +
+            "</div>" +
+            '<div class="h-hero__read h-fade" style="--d:.9s" id="hRead"><b>Behind this text</b><span>Each square is one story, oldest at the top left. Point at one to read it.</span></div>' +
+          "</div>" +
         "</section>" +
 
-        // 띠: 영상 (GIF 의 Spotlight Video 와 같은 구성)
-        (vids.length ? '<section class="band">' +
-          '<div class="band__head"><h2>Video</h2><span>AVING at CES on YouTube</span>' +
-            '<a href="#video" class="more">All ' + num(META.videos) + " videos →</a></div>" +
-          '<div class="band__grid">' + videoCard(vids[0], true) +
-            '<div class="band__small">' + vids.slice(1, 5).map(function (a) { return videoCard(a); }).join("") + "</div>" +
+        // 스크롤하면 커지는 대표 영상
+        (feat ? '<section class="h-stage" id="hStage" aria-label="Featured video"><div class="h-stage__pin">' +
+          '<button class="h-stage__media" id="hStageMedia" data-vid="' + feat.id + '" aria-label="Play video: ' + esc(short(feat.t)) + '">' +
+            '<img src="' + esc(thumb(feat)) + '" alt="">' + '<span class="h-stage__frame"></span>' +
+            '<span class="h-stage__cap"><span><span class="h-label h-label--coral">Featured video · CES ' + feat.y + "</span><strong class=\"h-stage__t\">" + esc(short(feat.t)) + "</strong></span>" +
+            '<span class="h-play">' + HP + "Play video</span></span>" +
+          "</button></div></section>" : "") +
+
+        // 최근 기사 띠
+        '<div class="h-marquee" aria-label="Recently filed"><div class="h-marquee__track">' + ticker + ticker + "</div></div>" +
+
+        // ② Latest
+        '<section class="h-sec"><div class="h-wrap">' +
+          '<div class="h-head h-rv"><div><span class="h-label h-label--coral">Latest</span><h2>Fresh from <b>the floor.</b></h2></div>' +
+            '<a class="h-btn h-btn--ink" href="#latest">All stories</a></div>' +
+          '<div class="h-latest">' + latest.map(function (a, i) { return hCard(a, i, i === 0); }).join("") + "</div>" +
+        "</div></section>" +
+
+        // ③ Innovation Awards
+        (aw.length ? '<section class="h-sec h-sec--flush"><div class="h-wrap">' +
+          '<div class="h-awards-top">' +
+            '<div class="h-trophy h-rv" id="hTrophy"><div><span class="h-label">CES Innovation Awards</span><b data-count-on-view="' + META.tags.awards + '">0</b>' +
+              "<h3>stories on honorees and Best of Innovation winners</h3></div>" +
+              '<a class="h-btn h-btn--coral" href="#tag-awards">See all honorees</a></div>' +
+            "<div>" + hCard(aw[0], 1) + "</div>" +
           "</div>" +
-        "</section>" : "") +
+          '<div class="h-awards">' + aw.slice(1, 5).map(function (a, i) { return hCard(a, i); }).join("") + "</div>" +
+        "</div></section>" : "") +
 
-        '<div class="cols"><div class="cols__main">' +
-          // Innovation Awards
-          (awards.length ? secHead("tag-awards", "CES " + awardYear + " Innovation Awards") +
-            '<div class="cards">' + awards.slice(0, 3).map(card).join("") + "</div>" : "") +
-
-          // Pavilions
-          (pav.length ? secHead("tag-pavilion") +
-          '<div class="feat">' +
-            '<article class="feat__big">' + link(pav[0], ph(pav[0]) + "<div>" + kicker(pav[0]) + "</div><h3>" + esc(pav[0].t) + "</h3>" +
-              (lead(pav[0]) ? "<p>" + esc(lead(pav[0])) + "</p>" : "") + meta(pav[0])) + "</article>" +
-            '<ul class="rows">' + pav.slice(1, 5).map(row).join("") + "</ul>" +
-          "</div>" : "") +
-
-          // CES Unveiled
-          (unv.length ? secHead("tag-unveiled") + '<div class="cards">' + unv.slice(0, 3).map(card).join("") + "</div>" : "") +
-
-          // Interviews
-          (itv.length ? secHead("tag-interview") + '<div class="cards">' + itv.slice(0, 3).map(card).join("") + "</div>" : "") +
-
-          // News by Year
-          secHead("year", null, null, "year-" + ny) +
-          '<div class="years">' + META.years.slice(0, 6).map(function (o) {
-            var ya = IDX.filter(function (a) { return a.y === o.y; });
-            return '<div class="years__col"><a class="years__y" href="#year-' + o.y + '"><b>CES ' + o.y + "</b><span>" + stories(o.n) + "</span></a>" +
-              '<ul class="years__list">' + ya.slice(0, 3).map(function (a) { return "<li>" + link(a, esc(short(a.t))) + "</li>"; }).join("") + "</ul></div>";
+        // ④ Video
+        '<section class="h-sec h-dark"><div class="h-wrap">' +
+          '<div class="h-head h-rv"><div><span class="h-label h-label--coral">AVING on YouTube</span><h2>Watch <b>the show.</b></h2>' +
+            "<p>" + num(META.videos) + ' videos: demos, booth tours and founder interviews from the show floor. <a href="#video" style="color:var(--h-coral)">See all →</a></p></div>' +
+            '<div class="h-rail-ctl"><button class="h-sq" data-rail="-1" aria-label="Previous videos">←</button><button class="h-sq" data-rail="1" aria-label="Next videos">→</button></div></div>' +
+          '<div class="h-vrail" id="hRail">' + vids.slice(0, 14).map(function (a) {
+            return '<button class="h-vcard" data-vid="' + a.id + '"><span class="h-vcard__img"><img src="https://i.ytimg.com/vi/' + esc(a.yt) + '/hqdefault.jpg" alt="" loading="lazy"><span class="h-vcard__play">' + HP + "</span></span>" +
+              "<small>CES " + a.y + " · " + day(a) + '</small><span class="h-vcard__t">' + esc(short(a.t)) + "</span></button>";
           }).join("") + "</div>" +
-        "</div>" +
+          '<div class="h-progress"><i id="hProg"></i></div>' +
+        "</div></section>" +
 
-        '<aside class="side">' +
-          '<div class="side__box"><h2 class="side__h">Most Read · CES ' + newest() + '</h2><ol class="rank">' +
-            mostRead.map(function (a) { return "<li>" + link(a, "<span>" + esc(short(a.t)) + "</span>") + "</li>"; }).join("") +
-          "</ol></div>" +
-          '<div class="side__box"><h2 class="side__h">Browse by Edition</h2><ul class="yearlist">' +
-            META.years.map(function (o) { return '<li><a href="#year-' + o.y + '"><span>CES ' + o.y + "</span><b>" + num(o.n) + "</b></a></li>"; }).join("") +
-          "</ul></div>" +
-          '<div class="side__box side__about"><h2 class="side__h">About this archive</h2>' +
-            "<p>AVING has covered CES in Las Vegas every year since 2006, from CES Unveiled to the Innovation Awards and the national pavilions. This archive gathers " + num(META.total) + " of those stories from CES " + META.years[META.years.length - 1].y + " to CES " + newest() + ", filed by edition.</p>" +
-            '<a href="https://us.aving.net" target="_blank" rel="noopener" class="more">Visit AVING USA ↗</a></div>' +
-        "</aside></div>";
+        // ⑤ 연도 막대
+        '<section class="h-sec" id="hRoad"><div class="h-wrap">' +
+          '<div class="h-head h-rv"><div><span class="h-label h-label--coral">By year</span><h2>The road <b>through CES.</b></h2>' +
+            "<p>" + META.years.length + " editions on the show floor. Point at a year to see what we filed.</p></div></div>" +
+          '<div class="h-road h-rv"><div class="h-road__top"><div class="h-road__sel"><b id="hSelY"></b><span id="hSelN"></span></div><div class="h-road__list" id="hSelList"></div></div>' +
+            '<div class="h-bars" id="hBars" style="--n:' + yrs.length + '">' + yrs.map(function (o, i) {
+              var h = Math.max(4, Math.sqrt(o.n / max) * 100);   // 2011(1,186건)만 너무 튀지 않게 제곱근 비율
+              return '<a class="h-bar" href="#year-' + o.y + '" data-y="' + o.y + '" style="--h:' + h.toFixed(1) + "%;--i:" + i + '" aria-label="CES ' + o.y + ", " + stories(o.n) + '"><em>' + num(o.n) + "</em><i></i><small>'" + String(o.y).slice(2) + "</small></a>";
+            }).join("") + "</div>" +
+          "</div>" +
+        "</div></section>" +
+
+        // ⑥ 주제
+        '<section class="h-sec h-sec--flush"><div class="h-wrap">' +
+          '<div class="h-head h-rv"><div><span class="h-label h-label--coral">By topic</span><h2>Pick <b>a lane.</b></h2></div></div>' +
+          '<div class="h-explore">' + topics.map(function (t, i) {
+            var a = IDX.filter(function (b) { return has(b, t.tag) && b.img; })[0];
+            return '<a class="h-xcard h-rv" style="--i:' + i + '" href="#tag-' + t.tag + '">' + (a ? '<img src="' + esc(thumb(a)) + '" alt="" loading="lazy">' : "") +
+              '<span class="h-label">' + stories(META.tags[t.tag] || 0) + "</span><h3>" + t.name + "</h3><p>" + t.desc + '</p><span class="h-row"><span class="h-go" aria-hidden="true">→</span></span></a>';
+          }).join("") + "</div>" +
+        "</div></section>" +
+
+        // ⑦ 많이 본 기사
+        '<section class="h-sec h-sec--flush"><div class="h-wrap">' +
+          '<div class="h-head h-rv"><div><span class="h-label h-label--coral">' + mostLabel + ' · by views</span><h2>Most <b>read.</b></h2></div></div>' +
+          '<ol class="h-most">' + most.map(function (a, i) {
+            return '<li><a class="h-rv" style="--i:' + (i % 4) + '" href="#article-' + a.id + '"><i>' + (i + 1) + "</i><div><h3>" + esc(short(a.t)) + "</h3><small>CES " + a.y + " · " + num(a.v) + ' views</small></div><span class="h-go" aria-hidden="true">→</span></a></li>';
+          }).join("") + "</ol>" +
+        "</div></section>";
     });
   }
+
+  /* 홈을 그린 뒤 붙이는 움직임 */
+  function homeInit() {
+    // 스크롤 등장 + 들어올 때 숫자 올리기
+    var els = document.querySelectorAll(".h-rv:not(.is-in)");
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      els.forEach(function (el) { el.classList.add("is-in"); });
+      document.querySelectorAll("[data-count-on-view]").forEach(function (el) { el.textContent = num(+el.getAttribute("data-count-on-view")); });
+    } else {
+      var io = new IntersectionObserver(function (ents) {
+        ents.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          en.target.classList.add("is-in"); io.unobserve(en.target);
+          var c = en.target.querySelector("[data-count-on-view]");
+          if (c) countTo(c, +c.getAttribute("data-count-on-view"), 1400);
+        });
+      }, { threshold: .15, rootMargin: "0px 0px -40px 0px" });
+      els.forEach(function (el) { io.observe(el); });
+    }
+    // 히어로 숫자
+    setTimeout(function () {
+      document.querySelectorAll("[data-count]").forEach(function (el) { countTo(el, +el.getAttribute("data-count"), 1800); });
+    }, reduceMotion ? 0 : 700);
+    // 연도 막대: 처음엔 기사가 충분히 쌓인 가장 최근 행사
+    selectYear((META.years.filter(function (o) { return o.n >= 30; })[0] || META.years[0]).y);
+    heroField();
+    onHomeScroll();
+  }
+  function countTo(el, to, ms) {
+    if (reduceMotion) { el.textContent = num(to); return; }
+    var t0 = performance.now();
+    requestAnimationFrame(function step(t) {
+      var p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 4);
+      el.textContent = num(Math.round(to * e));
+      if (p < 1 && el.isConnected) requestAnimationFrame(step);
+    });
+  }
+  function selectYear(y) {
+    var o = META.years.filter(function (x) { return x.y === y; })[0], sel = document.getElementById("hSelY");
+    if (!o || !sel) return;
+    sel.textContent = "CES " + y;
+    document.getElementById("hSelN").textContent = stories(o.n) + (o.v ? " · " + o.v + " videos" : "");
+    document.getElementById("hSelList").innerHTML = IDX.filter(function (a) { return a.y === y; }).slice(0, 3).map(function (a) {
+      return '<a href="#article-' + a.id + '"><span>' + esc(short(a.t)) + "</span></a>";
+    }).join("");
+    document.querySelectorAll(".h-bar").forEach(function (b) { b.classList.toggle("is-on", +b.getAttribute("data-y") === y); });
+  }
+
+  /* 히어로 배경: 기사 1건 = 사각형 1칸 (오래된 기사부터). 밝기 물결이 천천히 지나가고, 가리키면 제목이 보임 */
+  function heroField() {
+    var cv = document.getElementById("hField"), hero = document.getElementById("hHero"), read = document.getElementById("hRead");
+    if (!cv) return;
+    var ctx = cv.getContext("2d");
+    var items = IDX.slice().sort(function (a, b) { return a.y - b.y || (a.d < b.d ? -1 : 1); });
+    var N = items.length, W, H, P, S, cols, cells, off, mx = -999, my = -999, hoverK = -1, run = true, last = 0;
+    var idle = read.innerHTML;
+
+    function layout() {
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = cv.offsetWidth; H = cv.offsetHeight;
+      P = W < 760 ? 10 : 14; S = P - 3;
+      cols = Math.ceil(W / P); cells = cols * Math.ceil(H / P);
+      off = Math.max(0, N - cells);                  // 칸이 모자라면(모바일) 최신 기사 쪽을 보여 줌
+      cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    function draw(t) {
+      if (!cv.isConnected) return;                   // 다른 화면으로 가면 멈춤
+      if (!run) return;
+      if (!reduceMotion) requestAnimationFrame(draw);
+      if (t - last < 33) return;                     // 30fps 면 충분
+      last = t;
+      var s = reduceMotion ? 0 : t * .0006;
+      ctx.clearRect(0, 0, W, H);
+      for (var c = 0; c < cells; c++) {
+        var k = c + off; if (k >= N) break;
+        var a = items[k], x = (c % cols) * P, y = Math.floor(c / cols) * P;
+        var wave = .5 + .5 * Math.sin(x * .008 - y * .006 + s * 2.2);            // 대각선으로 지나가는 밝기 물결
+        var mask = W < 760 ? .45 : .25 + .75 * Math.min(1, x / W * 1.5);          // 글자 쪽(왼쪽)은 옅게, 모바일은 전체를 옅게
+        var near = Math.max(0, 1 - Math.hypot(x - mx, y - my) / 140);
+        var al = (.06 + wave * .1) * mask + near * .5;
+        ctx.fillStyle = k === hoverK ? "#fff" :
+          has(a, "awards") ? "rgba(232,176,35," + Math.min(1, al * 3.2) + ")" :
+          a.yt ? "rgba(237,56,64," + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
+        ctx.fillRect(x, y, S, S);
+      }
+    }
+    function at(e) {
+      var b = cv.getBoundingClientRect(), c = Math.floor((e.clientX - b.left) / P), r = Math.floor((e.clientY - b.top) / P), k = r * cols + c + off;
+      return c >= 0 && c < cols && r >= 0 && k < N ? k : -1;
+    }
+    layout();
+    cv._layout = layout;
+    hero.addEventListener("pointermove", function (e) {
+      var b = cv.getBoundingClientRect(); mx = e.clientX - b.left; my = e.clientY - b.top;
+      var k = e.target.closest("a, button") ? -1 : at(e);
+      if (k === hoverK) return;
+      hoverK = k;
+      hero.style.cursor = k > -1 ? "pointer" : "";
+      if (k < 0) read.innerHTML = idle;
+      else {
+        var a = items[k];
+        read.innerHTML = "<b>CES " + a.y + "</b><span><strong>" + esc(short(a.t)) + "</strong> · " + day(a) + " · story " + num(k + 1) + " of " + num(N) + "</span>";
+      }
+      if (reduceMotion) draw(0);
+    });
+    hero.addEventListener("pointerleave", function () { mx = my = -999; hoverK = -1; hero.style.cursor = ""; read.innerHTML = idle; if (reduceMotion) draw(0); });
+    hero.addEventListener("click", function (e) {
+      if (e.target.closest("a, button")) return;
+      var k = at(e); if (k > -1) location.hash = "article-" + items[k].id;
+    });
+    if ("IntersectionObserver" in window && !reduceMotion) {
+      new IntersectionObserver(function (en) { var was = run; run = en[0].isIntersecting; if (run && !was) requestAnimationFrame(draw); }).observe(cv);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  /* 스크롤: 헤더 얇게 · 대표 영상 키우기 (홈이 아닐 때는 요소가 없어서 그냥 지나감) */
+  var hHd = document.getElementById("hHd"), scrollTick = false;
+  function onHomeScroll() {
+    if (scrollTick) return; scrollTick = true;
+    requestAnimationFrame(function () {
+      scrollTick = false;
+      hHd.classList.toggle("is-scrolled", window.scrollY > 40);
+      var stage = document.getElementById("hStage");
+      if (!stage) return;
+      var r = stage.getBoundingClientRect();
+      var p = Math.min(1, Math.max(0, -r.top / (r.height - window.innerHeight)));
+      document.getElementById("hStageMedia").style.setProperty("--p", reduceMotion ? 1 : p.toFixed(4));
+    });
+  }
+  window.addEventListener("scroll", onHomeScroll, { passive: true });
+  window.addEventListener("resize", function () {
+    var cv = document.getElementById("hField");
+    if (cv && cv._layout) cv._layout();
+    onHomeScroll();
+  });
+
+  /* 홈의 클릭: 연도 막대 · 영상 레일 화살표 · 섹션으로 스크롤 */
+  document.addEventListener("mouseover", function (e) {
+    var b = e.target.closest && e.target.closest(".h-bar"); if (b) selectYear(+b.getAttribute("data-y"));
+  });
+  document.addEventListener("focusin", function (e) {
+    var b = e.target.closest && e.target.closest(".h-bar"); if (b) selectYear(+b.getAttribute("data-y"));
+  });
+  document.addEventListener("click", function (e) {
+    var r = e.target.closest("[data-rail]");
+    if (r) {
+      var rail = document.getElementById("hRail"), card = rail.querySelector(".h-vcard");
+      rail.scrollBy({ left: +r.getAttribute("data-rail") * (card ? card.offsetWidth + 24 : 300) * 2, behavior: reduceMotion ? "auto" : "smooth" });
+      return;
+    }
+    var s = e.target.closest("[data-scroll]");
+    if (s) { var t = document.getElementById(s.getAttribute("data-scroll")); if (t) t.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" }); }
+  });
+  document.addEventListener("scroll", function (e) {
+    if (!e.target || e.target.id !== "hRail") return;
+    var rail = e.target, max = rail.scrollWidth - rail.clientWidth;
+    document.getElementById("hProg").style.transform = "translateX(" + (max ? rail.scrollLeft / max * 400 : 0) + "%)";
+  }, true);
+
+  /* 홈 헤더: 검색 · 모바일 메뉴 */
+  function toggleDrop(btnId, panelId, focusId) {
+    var btn = document.getElementById(btnId), panel = document.getElementById(panelId);
+    btn.addEventListener("click", function () {
+      var open = !panel.classList.contains("is-open");
+      document.querySelectorAll(".h-drop.is-open").forEach(function (p) { p.classList.remove("is-open"); });
+      document.querySelectorAll("#hSrchBtn, #hMenuBtn").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
+      panel.classList.toggle("is-open", open);
+      btn.setAttribute("aria-expanded", open);
+      if (open && focusId) setTimeout(function () { document.getElementById(focusId).focus(); }, 150);
+    });
+  }
+  toggleDrop("hSrchBtn", "hSrch", "hq");
+  toggleDrop("hMenuBtn", "hMenu");
+  function closeDrops() {
+    document.querySelectorAll(".h-drop.is-open").forEach(function (p) { p.classList.remove("is-open"); });
+    document.querySelectorAll("#hSrchBtn, #hMenuBtn").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
+  }
+  document.getElementById("hSrchForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var q = document.getElementById("hq").value.trim();
+    if (q) { closeDrops(); location.hash = "search-" + encodeURIComponent(q); }
+  });
+  document.getElementById("hMenu").addEventListener("click", function (e) { if (e.target.closest("a")) closeDrops(); });
 
   /* ---------- 목록 화면 ---------- */
   function latestPage() {
@@ -335,6 +572,11 @@
     }).join("");
     document.getElementById("gnb").innerHTML = html;
     document.getElementById("footNav").innerHTML = html;
+    document.getElementById("hNav").innerHTML = html;
+    document.getElementById("hMenuNav").innerHTML = html;
+    document.getElementById("hFootNav").innerHTML = MENU.map(function (m) {
+      return '<li><a href="#' + (m.key === "year" ? "year-" + newest() : m.key) + '">' + esc(m.name) + "</a></li>";
+    }).join("");
   }
   function markNav(key) {
     document.querySelectorAll("#gnb a").forEach(function (a) {
@@ -367,9 +609,11 @@
     var my = ++seq;
     Promise.resolve(out).then(function (html) {
       if (my !== seq) return;            // 그 사이 다른 화면으로 이동했으면 무시
+      document.documentElement.classList.toggle("is-home", key === "");   // 홈이면 새 헤더/푸터 (assets/home.css)
       app.innerHTML = html;
       markNav(key);
       window.scrollTo(0, 0);
+      if (key === "") homeInit();
       if (pager) pageMore();
       if (vpager) videoMore();
     });
@@ -443,6 +687,11 @@
     IDX = r[1].map(function (x) { return { id: x[0], t: x[1], d: x[2], y: x[3], img: x[4], by: x[5], tags: x[6] || [], yt: x[7] || "", v: x[8] || 0, sec: x[9] || "" }; });
     IDX.forEach(function (a) { byId[a.id] = a; });
     document.getElementById("updated").textContent = META.updated;
+    document.getElementById("hUpdated").textContent = META.updated;
+    // 푸터 로고 아래 줄: 데이터 기준으로 (예: 2006–2027 · 5,097 CES stories · 21 years of coverage)
+    var y0 = META.years[META.years.length - 1].y;
+    document.getElementById("hFacts").innerHTML = [y0 + "–" + newest(), num(META.total) + " CES stories", (newest() - y0) + ' years<span class="h-ft__long"> of coverage</span>']
+      .map(function (t) { return "<span>" + t + "</span>"; }).join(" · ");   // 항목 단위로만 줄바꿈
     renderNav();
     window.addEventListener("hashchange", route);
     route();
