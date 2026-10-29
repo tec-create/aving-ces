@@ -524,6 +524,19 @@
       '?rel=0" title="Video" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>';
     return "";
   }
+  function sameStart(text, blocks) {
+    var first = blocks.filter(function (x) { return x.t === "p"; })[0];
+    if (!first) return false;
+    var norm = function (t) { return t.replace(/[\s…]+/g, " ").trim().slice(0, 60).toLowerCase(); };
+    return norm(first.x).indexOf(norm(text).slice(0, 40)) === 0;
+  }
+  /* 검색 엔진용: 기사 화면에서는 원문(us.aving.net)을 대표 주소(canonical)로 알려 중복 콘텐츠로 보지 않게 함 */
+  var SITE = "https://avingces.news/";
+  function setPageMeta(a) {
+    var link = document.querySelector('link[rel="canonical"]');
+    if (link) link.href = a ? AVING + a.id : SITE;
+    document.title = a ? a.t + " · AVING CES" : "AVING CES · CES Issue Discovery Hub";
+  }
   function articlePage(id) {
     var a = byId[id];
     if (!a) return Promise.resolve('<div class="page"><p class="empty">This story could not be found. <a href="#latest">See the latest stories →</a></p></div>');
@@ -535,7 +548,8 @@
       getJSON("data/body/" + id + ".json").then(function (j) { return (BODY[id] = j.body || []); }).catch(function () { return []; });
 
     return Promise.all([withLeads([a]), bodyP]).then(function (r) {
-      var b = r[1];
+      // 맨 위에 영상 플레이어를 보여 주므로, 본문 속 같은 영상은 빼서 두 번 나오지 않게 함
+      var b = r[1].filter(function (x) { return !(x.t === "yt" && x.id === a.yt); });
       var hasImg = b.some(function (x) { return x.t === "img"; });
       var crumbs = ['<a href="#year-' + a.y + '">CES ' + a.y + "</a>"].concat(a.tags.map(function (t) {
         return '<a href="#tag-' + t + '">' + esc(TAG_NAME[t]) + "</a>";
@@ -547,7 +561,8 @@
         '<article class="art__main">' +
           '<nav class="crumbs" aria-label="Categories">' + crumbs.join('<span aria-hidden="true">/</span>') + "</nav>" +
           "<h1>" + esc(a.t) + "</h1>" +
-          (b.length && lead(a) ? '<p class="art__dek">' + esc(lead(a)) + "</p>" : "") +
+          // 요약이 본문 첫 문단과 같으면(대부분 그렇습니다) 두 번 보이지 않게 생략
+          (b.length && lead(a) && !sameStart(lead(a), b) ? '<p class="art__dek">' + esc(lead(a)) + "</p>" : "") +
           '<div class="art__meta"><span>' + esc(a.by) + (a.by ? " · " : "") + day(a) + " " + esc(a.d.slice(11, 16)) + "</span>" +
             (a.v ? "<span>" + num(a.v) + " views</span>" : "") + (a.sec ? "<span>" + esc(a.sec) + "</span>" : "") +
             '<a href="' + AVING + a.id + '" target="_blank" rel="noopener">Original on AVING USA ↗</a></div>' +
@@ -611,6 +626,7 @@
       if (my !== seq) return;            // 그 사이 다른 화면으로 이동했으면 무시
       document.documentElement.classList.toggle("is-home", key === "");   // 홈이면 새 헤더/푸터 (assets/home.css)
       app.innerHTML = html;
+      setPageMeta(base === "article" ? byId[parseInt(arg, 10)] : null);
       markNav(key);
       window.scrollTo(0, 0);
       if (key === "") homeInit();
