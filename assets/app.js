@@ -159,13 +159,20 @@
     return '<div class="h-card__img' + (s ? "" : " is-none") + '" data-y="CES ' + a.y + '">' +
       (s ? '<img src="' + esc(s) + '" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'is-none\');this.remove()">' : "") + "</div>";
   }
-  function hCard(a, i, big) {
+  function hCard(a, i, big, noBadge) {
     return '<a class="h-card h-rv' + (big ? " h-card--big" : "") + '" style="--i:' + i + '" href="#article-' + a.id + '">' +
-      (has(a, "awards") ? '<span class="h-badge">CES ' + a.y + " Honoree</span>" : "") +
+      (has(a, "awards") && !noBadge ? '<span class="h-badge">★ Honoree</span>' : "") +
       (a.yt ? '<span class="h-badge h-badge--yt">▶ Video</span>' : "") + hImg(a) +
       '<div class="h-card__body"><span class="h-label h-label--coral">CES ' + a.y + (a.sec ? " · " + esc(a.sec) : "") + "</span>" +
       "<h3>" + esc(short(a.t)) + "</h3>" + (big && lead(a) ? "<p>" + esc(lead(a)) + "</p>" : "") +
       '<div class="h-card__foot"><small>' + esc(a.by) + (a.by ? " · " : "") + day(a) + '</small><span class="h-go" aria-hidden="true">→</span></div></div></a>';
+  }
+  // Latest 오른쪽 헤드라인 목록 한 줄: 작은 사진 + 분류 · 제목 · 작성자
+  function hRow(a, i) {
+    return '<a class="h-row h-rv" style="--i:' + i + '" href="#article-' + a.id + '">' + hImg(a) +
+      '<span class="h-row__body"><span class="h-label h-label--coral">CES ' + a.y + (a.sec ? " · " + esc(a.sec) : "") +
+      (has(a, "awards") ? '<span class="h-star">★ Honoree</span>' : "") + "</span>" +
+      "<h3>" + esc(short(a.t)) + "</h3><small>" + esc(a.by) + (a.by ? " · " : "") + day(a) + "</small></span></a>";
   }
   function home() {
     var ny = newest();
@@ -224,18 +231,19 @@
         '<section class="h-sec"><div class="h-wrap">' +
           '<div class="h-head h-rv"><div><span class="h-label h-label--coral">Latest</span><h2>Fresh from <b>the floor.</b></h2></div>' +
             '<a class="h-btn h-btn--ink" href="#latest">All stories</a></div>' +
-          '<div class="h-latest">' + latest.map(function (a, i) { return hCard(a, i, i === 0); }).join("") + "</div>" +
+          '<div class="h-latest">' + (latest[0] ? hCard(latest[0], 0, true) : "") +
+            '<div class="h-list">' + latest.slice(1).map(function (a, i) { return hRow(a, i + 1); }).join("") + "</div></div>" +
         "</div></section>" +
 
         // ③ Innovation Awards
         (aw.length ? '<section class="h-sec h-sec--flush"><div class="h-wrap">' +
-          '<div class="h-awards-top">' +
+          '<div class="h-aw">' +
             '<div class="h-trophy h-rv" id="hTrophy"><div><span class="h-label">CES Innovation Awards</span><b data-count-on-view="' + META.tags.awards + '">0</b>' +
               "<h3>stories on honorees and Best of Innovation winners</h3></div>" +
-              '<a class="h-btn h-btn--coral" href="#tag-awards">See all honorees</a></div>' +
-            "<div>" + hCard(aw[0], 1) + "</div>" +
+              '<div class="h-trophy__foot"><a class="h-btn h-btn--coral" href="#tag-awards">See all honorees</a>' +
+                '<div class="h-rail-ctl"><button class="h-sq" data-rail="-1" data-target="hAwRail" aria-label="Previous honorees">←</button><button class="h-sq" data-rail="1" data-target="hAwRail" aria-label="Next honorees">→</button></div></div></div>' +
+            '<div class="h-awrail" id="hAwRail">' + aw.slice(0, 10).map(function (a, i) { return hCard(a, i, false, true); }).join("") + "</div>" +
           "</div>" +
-          '<div class="h-awards">' + aw.slice(1, 5).map(function (a, i) { return hCard(a, i); }).join("") + "</div>" +
         "</div></section>" : "") +
 
         // ④ Video
@@ -428,7 +436,7 @@
   document.addEventListener("click", function (e) {
     var r = e.target.closest("[data-rail]");
     if (r) {
-      var rail = document.getElementById("hRail"), card = rail.querySelector(".h-vcard");
+      var rail = document.getElementById(r.getAttribute("data-target") || "hRail"), card = rail.firstElementChild;
       rail.scrollBy({ left: +r.getAttribute("data-rail") * (card ? card.offsetWidth + 24 : 300) * 2, behavior: reduceMotion ? "auto" : "smooth" });
       return;
     }

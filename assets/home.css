@@ -17,11 +17,12 @@
   --h-white: #fff;
   --h-ink: #15151d;        /* 로고 AVING 검정 */
   --h-ink-2: #55555c;
-  --h-ink-3: #8a8a90;
+  --h-ink-3: #6b6b72;      /* 작은 회색 글자: 흰 바탕 대비 5.3:1 */
   --h-on-dark: #f3f2ef;
   --h-on-dark-2: #a3a3aa;
   --h-coral: #f64f21;      /* 포인트 색: 로고 오렌지와 예전 빨강의 중간 톤 (변수 이름은 예전 빨강 시절 그대로) */
   --h-coral-2: #ff6a3d;
+  --h-coral-text: #c93a0e; /* 밝은 바탕 위 작은 포인트 글자용 (흰 바탕 대비 5.1:1) */
   --h-gold: #e8b023;       /* Innovation Award */
   --h-line: #dcdad5;
   --h-line-dark: #2e2e34;
@@ -41,7 +42,9 @@ html.is-home #app { max-width: none; padding: 0; }
 html.is-home :focus-visible { outline-color: var(--h-coral); outline-offset: 3px; }
 html.is-home .loading { color: var(--h-ink-3); }
 /* style.css 의 "링크 위 제목 = 파란색" 규칙을 홈에서는 빨강으로 */
-html.is-home a:hover h1, html.is-home a:hover h3, html.is-home a:hover h4 { color: var(--h-coral); }
+/* 링크 제목 hover: 글자색은 그대로 두고 밑줄 (큰 오렌지 글자는 읽기 어려워서) */
+html.is-home a:hover h1, html.is-home a:hover h3, html.is-home a:hover h4 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .14em; }
+html.is-home a.h-xcard:hover h3 { text-decoration: none; }
 /* 영상 팝업(기존 것 재사용)을 홈 톤으로 */
 html.is-home .modal { background: rgba(0, 0, 0, .9); }
 html.is-home .modal__box { background: var(--h-black-2); }
@@ -52,7 +55,7 @@ html.is-home .modal__meta a { color: var(--h-coral); font-family: var(--h-f); }
 
 /* ---------- 공통 조각 ---------- */
 .h-label { font-size: 13px; font-weight: 600; color: var(--h-ink-3); }
-.h-label--coral { color: var(--h-coral); }
+.h-label--coral { color: var(--h-coral-text); }
 .h-dark .h-label { color: var(--h-on-dark-2); }
 .h-dark .h-label--coral { color: var(--h-coral); }
 .h-btn { display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border-radius: 2px; font-weight: 600; font-size: 15px; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
@@ -174,24 +177,37 @@ a:hover .h-go, button:hover .h-go { background: var(--h-coral); border-color: va
 .h-badge--yt { left: auto; right: 0; background: var(--h-black); color: #fff; }
 
 /* ② Latest */
-.h-latest { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-.h-latest .h-card--big { grid-column: span 2; grid-row: span 2; }
+/* Latest: 왼쪽 큰 기사 + 오른쪽 헤드라인 목록 (제목이 잘리지 않게) */
+.h-latest { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 48px; align-items: stretch; }
 .h-card--big .h-card__img { aspect-ratio: auto; flex: 1; min-height: 340px; }
 .h-card--big h3 { font-size: clamp(24px, 2.3vw, 32px); line-height: 1.15; font-weight: 700; font-stretch: 82%; -webkit-line-clamp: 4; }
 .h-card--big .h-card__body { flex: none; padding: 28px; }
 .h-card--big p { color: var(--h-ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.h-latest .h-card:not(.h-card--big) .h-card__img { aspect-ratio: 16 / 9; }
-.h-latest .h-card:not(.h-card--big) h3 { font-size: 16.5px; }
+.h-list { display: flex; flex-direction: column; justify-content: space-between; }
+.h-row { display: grid; grid-template-columns: 152px minmax(0, 1fr); gap: 22px; align-items: start; padding: 22px 0; border-top: 1px solid var(--h-line); }
+.h-row:first-child { padding-top: 0; border-top: 0; }
+.h-row .h-card__img { aspect-ratio: 4 / 3; border-radius: 4px; }
+.h-row .h-card__img.is-none::after { font-size: 15px; }
+.h-row:hover .h-card__img img { transform: scale(1.05); }
+.h-row__body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.h-row h3 { font-size: 19px; line-height: 1.35; font-weight: 600; letter-spacing: -.005em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.h-row small { font-size: 13px; color: var(--h-ink-3); }
+.h-star { margin-left: 10px; padding: 2px 7px; border-radius: 2px; background: var(--h-gold); color: #1d1500; font-size: 11px; font-weight: 700; }
 
 /* ③ Innovation Awards */
-.h-awards-top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; margin-bottom: 24px; }
+/* Innovation Awards: 왼쪽 숫자 소개 + 오른쪽 가로로 넘기는 카드 레일 */
+.h-aw { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: stretch; }
 .h-trophy { position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: 300px; padding: 40px; border-radius: var(--h-r); background: var(--h-black); color: var(--h-on-dark); overflow: hidden; }
 .h-trophy::before { content: ""; position: absolute; right: 32px; top: 32px; width: 72px; height: 72px; background: var(--h-gold); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 .h-trophy .h-label { color: var(--h-on-dark-2); }
 .h-trophy b { display: block; font-size: clamp(88px, 9vw, 136px); line-height: .85; font-weight: 700; font-stretch: 72%; color: var(--h-gold); font-variant-numeric: tabular-nums; margin-top: 18px; }
 .h-trophy h3 { font-size: 24px; line-height: 1.25; font-weight: 400; max-width: 20ch; margin-top: 14px; }
-.h-trophy .h-btn { align-self: flex-start; margin-top: 28px; }
-.h-awards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.h-trophy__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+.h-awrail { display: grid; grid-auto-flow: column; grid-auto-columns: 300px; gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  padding-block: 8px 34px; margin-block: -8px -34px; margin-right: calc(var(--h-g) * -1); padding-right: var(--h-g); }   /* 위아래 여백: hover 때 뜨는 카드와 그림자가 잘리지 않게 */
+.h-awrail::-webkit-scrollbar { display: none; }
+.h-awrail .h-card { scroll-snap-align: start; }
+.h-awrail .h-card__img { aspect-ratio: 16 / 10; }
 
 /* ④ Video */
 .h-vrail { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(300px, 1fr); gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 6px; margin-inline: calc(var(--h-g) * -1); padding-inline: var(--h-g); scroll-padding-inline: var(--h-g); }
@@ -286,8 +302,8 @@ html.is-home a.h-xcard:hover h3 { color: #fff; }
   .h-burger { display: grid; }
   .h-hd__act { margin-left: auto; }
   .h-hero__row { grid-template-columns: 1fr; }
-  .h-latest, .h-awards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .h-awards-top { grid-template-columns: 1fr; }
+  .h-latest, .h-aw { grid-template-columns: 1fr; }
+  .h-trophy { min-height: 0; }
   .h-explore { grid-template-columns: 1fr; }
   .h-xcard { min-height: 340px; }
 }
@@ -310,8 +326,12 @@ html.is-home a.h-xcard:hover h3 { color: #fff; }
   .h-sec { padding-block: 80px; }
   .h-sec--flush { padding-top: 0; }
   .h-head { margin-bottom: 32px; }
-  .h-latest, .h-awards, .h-most { grid-template-columns: 1fr; }
-  .h-latest .h-card--big { grid-column: auto; grid-row: auto; }
+  .h-most { grid-template-columns: 1fr; }
+  .h-latest { gap: 32px; }
+  .h-row { grid-template-columns: 104px minmax(0, 1fr); gap: 16px; padding: 18px 0; }
+  .h-row h3 { font-size: 16.5px; }
+  .h-awrail { grid-auto-columns: 78%; }
+  .h-trophy .h-rail-ctl { display: none; }   /* 휴대폰은 손가락으로 넘김 */
   .h-card--big .h-card__img { min-height: 220px; }
   .h-trophy { padding: 28px; }
   .h-vrail { grid-auto-columns: 82%; }
