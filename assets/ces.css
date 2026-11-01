@@ -7,7 +7,7 @@
   --ces: #4fbccf;        /* 최신 연도 강조 (GIF 의 2027 색) */
 }
 
-/* 로고 이미지: assets/logo-header.png (배경 투명) 하나를 상단과 푸터에 같이 씀
+/* 로고 이미지: assets/logo-header.png (AVING@CES 묶음, 배경 투명) 하나를 상단과 푸터에 같이 씀
  * 크기 — 상단: 폭 250px / 푸터: 높이 80px (모바일 72px) */
 .brand { display: inline-block; line-height: 0; }
 .brand img { width: 250px; height: auto; max-width: 100%; }
