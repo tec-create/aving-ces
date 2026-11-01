@@ -267,6 +267,14 @@ def main():
             img = v[0] if v and not re.search(r"/image/logo/|snslogo|noimage", v[0] or "") else ""
             extra[int(k)] = {"img": img, "lead": v[1] if len(v) > 1 else ""}
         print("썸네일 파일: %d건" % len(extra))
+    # source/bodies/*.json: 기사 페이지에서 모아 둔 본문 {기사번호: [블록, ...]} (ces_body_01.json ...)
+    bodies = {}
+    for f in sorted(glob.glob(os.path.join(ROOT, "source", "bodies", "*.json"))):
+        for k, v in json.load(open(f, encoding="utf-8")).items():
+            if v:
+                bodies[int(k)] = v
+    if bodies:
+        print("본문 파일: %d건" % len(bodies))
     for p in srcs[1:]:
         print("보충 파일:", p)
         for r in read_file(p):
@@ -301,7 +309,7 @@ def main():
             y = event_year(title, date)
         seen.add(aid)
         e = extra.get(aid, {})
-        body = parse_body(r.get("body") or e.get("body"))
+        body = parse_body(r.get("body") or e.get("body")) or bodies.get(aid, [])
         lead = clip(r.get("lead") or e.get("lead") or r.get("sub") or e.get("sub") or
                     " ".join(b["x"] for b in body if b["t"] == "p")[:400])
         img = short_img(r.get("img") or e.get("img")) or next((short_img(b["src"]) for b in body if b["t"] == "img"), "")
@@ -335,8 +343,15 @@ def main():
     nbody = 0
     for x in items:
         if x["_body"]:
-            json.dump({"body": x["_body"]}, open(os.path.join(DATA, "body", "%d.json" % x["id"]), "w", encoding="utf-8"),
-                      ensure_ascii=False, separators=(",", ":"))
+            # 내용이 같으면 다시 쓰지 않음 (5,000개 파일을 매번 다시 쓰면 오래 걸림)
+            fp = os.path.join(DATA, "body", "%d.json" % x["id"])
+            txt = json.dumps({"body": x["_body"]}, ensure_ascii=False, separators=(",", ":"))
+            try:
+                same = open(fp, encoding="utf-8").read() == txt
+            except OSError:
+                same = False
+            if not same:
+                open(fp, "w", encoding="utf-8").write(txt)
             nbody += 1
 
     meta = {
