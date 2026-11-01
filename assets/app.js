@@ -362,7 +362,7 @@
         var al = (.06 + wave * .1) * mask + near * .5;
         ctx.fillStyle = k === hoverK ? "#fff" :
           has(a, "awards") ? "rgba(232,176,35," + Math.min(1, al * 3.2) + ")" :
-          a.yt ? "rgba(237,56,64," + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
+          a.yt ? "rgba(246,79,33," + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
         ctx.fillRect(x, y, S, S);
       }
     }
