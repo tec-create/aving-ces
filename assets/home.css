@@ -78,7 +78,7 @@ a:hover .h-go, button:hover .h-go { background: var(--h-coral); border-color: va
 .h-hd.is-scrolled { background: rgba(15, 15, 18, .86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--h-line-dark); }
 .h-hd__in { display: flex; align-items: center; gap: 32px; height: 72px; transition: height .3s var(--h-ease); }
 .h-hd.is-scrolled .h-hd__in { height: 58px; }
-/* 로고: assets/logo-mark-dot-dark.png (AVING 오렌지 · 흰 점 · CES 남색, 1158×170) */
+/* 로고: assets/logo-mark-at-dark.png (AVING 오렌지 · 흰 @ · CES 남색, 1217×170) — 푸터와 같은 파일 */
 .h-logo { display: block; flex: none; line-height: 0; }
 .h-logo img { width: 168px; height: auto; }
 .h-nav { display: flex; gap: 4px; margin-right: auto; }
@@ -261,7 +261,7 @@ html.is-home a.h-xcard:hover h3 { color: #fff; }
 .h-ft__big b { font-weight: 700; font-stretch: 72%; color: var(--h-coral); letter-spacing: -.015em; }
 .h-ft__grid { display: grid; grid-template-columns: 1.8fr 1fr 1fr; gap: 40px; padding-block: 64px 48px; border-bottom: 1px solid var(--h-line-dark); margin-top: 56px; }
 /* 푸터 로고 (왼쪽 정렬): 워드마크 이미지 + 빨간 선 + CES DISCOVERY HUB 를 모두 같은 왼쪽 선에 맞춤
- * 워드마크는 바닥선에 맞춘 흰 @ 가 들어간 logo-mark-at-dark.png, 선 · HUB 는 원본 로고의 비율과 색을 따라 텍스트로 */
+ * 워드마크는 헤더와 같은 logo-mark-at-dark.png, 선 · HUB 는 원본 로고의 비율과 색을 따라 텍스트로 */
 .h-ft__logo { display: block; width: 240px; max-width: 100%; height: auto; }
 .h-ft__rule { display: block; width: 56px; height: 3px; background: var(--h-coral); margin-top: 20px; }
 .h-ft__grid .h-ft__hub { margin-top: 14px; font-size: 12px; font-weight: 600; letter-spacing: .42em; text-transform: uppercase; color: #c9c9d1; }
