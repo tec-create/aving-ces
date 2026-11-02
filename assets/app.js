@@ -344,7 +344,7 @@
     var ctx = cv.getContext("2d");
     var items = IDX.slice().sort(function (a, b) { return a.y - b.y || (a.d < b.d ? -1 : 1); });
     var N = items.length, W, H, P, S, cols, cells, off, mx = -999, my = -999, hoverK = -1, run = true, last = 0;
-    var idle = read.innerHTML;
+    var idle = read.innerHTML, vidRGB;
 
     function layout() {
       var dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -353,6 +353,8 @@
       cols = Math.ceil(W / P); cells = cols * Math.ceil(H / P);
       off = Math.max(0, N - cells);                  // 칸이 모자라면(모바일) 최신 기사 쪽을 보여 줌
       cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var hex = getComputedStyle(document.documentElement).getPropertyValue("--h-coral").trim().slice(1);   // 영상 칸 = 포인트 색
+      vidRGB = "rgba(" + [0, 2, 4].map(function (i) { return parseInt(hex.substr(i, 2), 16); }).join(",") + ",";
     }
     function draw(t) {
       if (!cv.isConnected) return;                   // 다른 화면으로 가면 멈춤
@@ -371,7 +373,7 @@
         var al = (.06 + wave * .1) * mask + near * .5;
         ctx.fillStyle = k === hoverK ? "#fff" :
           has(a, "awards") ? "rgba(232,176,35," + Math.min(1, al * 3.2) + ")" :
-          a.yt ? "rgba(246,79,33," + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
+          a.yt ? vidRGB + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
         ctx.fillRect(x, y, S, S);
       }
     }
@@ -414,8 +416,8 @@
       hHd.classList.toggle("is-scrolled", window.scrollY > 40);
       var stage = document.getElementById("hStage");
       if (!stage) return;
-      var r = stage.getBoundingClientRect();
-      var p = Math.min(1, Math.max(0, -r.top / (r.height - window.innerHeight)));
+      var r = stage.getBoundingClientRect(), vh = window.innerHeight;
+      var p = Math.min(1, Math.max(0, (vh - (r.top + r.height / 2)) / (vh / 2)));
       document.getElementById("hStageMedia").style.setProperty("--p", reduceMotion ? 1 : p.toFixed(4));
     });
   }
