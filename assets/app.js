@@ -33,6 +33,7 @@
   var MENU = [
     { key: "latest",        name: "Latest",            desc: "Newest CES stories first" },
     { key: "video",         name: "Video",             desc: "AVING's CES videos on YouTube" },
+    { key: "live",          name: "Live Stage",        desc: "Booth-side interviews from the AVING SPACE STUDIO at CES 2025" },
     { key: "tag-awards",    name: "Innovation Awards", desc: "Honorees and Best of Innovation winners" },
     { key: "tag-pavilion",  name: "Pavilions",         desc: "Seoul, K-Startup, IFEZ, Gyeonggi and other national pavilions" },
     { key: "tag-unveiled",  name: "CES Unveiled",      desc: "First looks from the CES Unveiled media preview" },
@@ -465,6 +466,54 @@
   });
   document.getElementById("hMenu").addEventListener("click", function (e) { if (e.target.closest("a")) closeDrops(); });
 
+  /* ---------- Live Stage ----------
+   * AVING SPACE STUDIO (같은 파란 스튜디오 배경) 인터뷰 영상 — YouTube @aving 재생목록 "CES 2025"
+   * 영상 추가·삭제: 아래 LIVE 배열에 ["YouTube ID", "제목"] 한 줄씩 */
+  var LIVE_YEAR = 2025, LIVE_LIST = "PL3Cffn9eHbGS7rDAsQ_fHuGpYo3sRZWKP";
+  var LIVE = [
+    ["YNTC-H3INhU", "Holmes AI · CLholmes®, CES 2025 Innovation Award"],
+    ["3YtuU1dkHLo", "Solvit System · SOLVIT-iSAR"],
+    ["mHJrht0NdL0", "Full Nature Farms"],
+    ["IcBoD_3ECHk", "Otiton Medical · Doctor in Home"],
+    ["59SSzhTgBk8", "KIM Venturous"],
+    ["ACwh5UnF1cg", "Hurotics"],
+    ["gh_j6auUY-A", "CIT"],
+    ["04QQCwbdrDg", "AETECH"],
+    ["3tIVO4epXjE", "PortableX"],
+    ["CcQselaX_6Y", "ALAFIA"],
+    ["ihxOSHY3SIQ", "ams OSRAM"],
+    ["s8_h-ndzz0Y", "VOORMI"],
+    ["wnSm3S0uPhs", "Sierrabase · SIRIUS"],
+    ["RxcBUqEzcr8", "Hypershell"],
+    ["mZJzsWIytE8", "Exobrew"],
+    ["v8yZ6d1NlNY", "LIDWAVE"],
+    ["kb7mycCFY4s", "Haply Robotics"],
+    ["JrU6hGr2vpI", "Jelle Schoppink"],
+    ["vx4VUY7onSI", "PxE Holographic Imaging"],
+    ["L_wNXHUQIDQ", "XING Mobility"],
+    ["Lpmr7zEU9tg", "Withings"],
+    ["qYdZ88WteBs", "TD Square"],
+    ["3Axid8ZQyNE", "SiriuXense"],
+    ["3TroiJhIPVQ", "AFS 3D"],
+    ["m_j-80SjQ5o", "BIOPOP"],
+    ["ML8XE49ohNY", "DEOGAM"],
+    ["zucTqLdJTrk", "Indertech · EYAS"],
+    ["Zgj9qbnnUpw", "Shield AI · Interview"],
+    ["jPtyJFBwdtE", "SPADE · AI2RE"],
+    ["O0qChuiAst4", "UniUni · SAVVY"],
+    ["eAbjy3QwZtU", "VM Consulting"],
+    ["-aM5oH5ikIU", "Shield AI"]
+  ];
+  function livePage() {
+    return '<div class="page">' + pageHead("Live Stage", LIVE.length + " interviews from the AVING SPACE STUDIO · CES " + LIVE_YEAR) +
+      '<div class="vgrid">' + LIVE.map(function (v) {
+        return '<button class="vid" data-live="' + esc(v[0]) + '"><span class="ph ph--video"><img src="https://i.ytimg.com/vi/' + esc(v[0]) +
+          '/hqdefault.jpg" alt="" loading="lazy"><span class="vid__play" aria-hidden="true"></span></span>' +
+          '<span class="vid__t">' + esc(v[1]) + '</span><span class="meta">CES ' + LIVE_YEAR + " · AVING SPACE STUDIO</span></button>";
+      }).join("") + '</div><div class="pager"><a class="pager__btn" href="https://www.youtube.com/playlist?list=' + LIVE_LIST +
+      '" target="_blank" rel="noopener">Full CES ' + LIVE_YEAR + " playlist on YouTube ↗</a></div></div>";
+  }
+
   /* ---------- 목록 화면 ---------- */
   function latestPage() {
     return '<div class="page">' + pageHead("Latest", stories(IDX.length) + ", newest first") + pagedList(IDX) + "</div>";
@@ -611,6 +660,7 @@
     pager = null; vpager = null;
     if (!h) { out = home(); key = ""; }
     else if (base === "latest") out = latestPage();
+    else if (base === "live") out = livePage();
     else if (base === "video") { var vy = parseInt(arg, 10); out = videoPage(META.years.some(function (o) { return o.y === vy; }) ? vy : null); }
     else if (base === "year") {
       var y = parseInt(arg, 10);
@@ -642,6 +692,13 @@
     if (e.target.closest("#vmore")) { videoMore(); return; }
     var v = e.target.closest("[data-vid]");
     if (v) { e.preventDefault(); openVideo(+v.getAttribute("data-vid")); return; }
+    var lv = e.target.closest("[data-live]");
+    if (lv) {
+      e.preventDefault();
+      var it = LIVE.filter(function (x) { return x[0] === lv.getAttribute("data-live"); })[0];
+      if (it) playYt(it[0], it[1], null);
+      return;
+    }
     if (e.target === modal || e.target.id === "modalClose") { closeVideo(); return; }
     var j = e.target.closest("[data-jump]");
     if (j && pager) {
@@ -671,12 +728,18 @@
   function openVideo(id) {
     var a = byId[id];
     if (!a || !a.yt) return;
+    playYt(a.yt, a.t, a.id);
+  }
+  // 기사 영상(storyId 있음)은 "Read the story" 링크를 보여 주고, Live Stage 영상(null)은 숨깁니다
+  function playYt(yt, title, storyId) {
     lastFocus = document.activeElement;
-    document.getElementById("player").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + a.yt +
-      '?autoplay=1&rel=0" title="' + esc(a.t) + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
-    document.getElementById("modalTitle").textContent = a.t;
-    document.getElementById("modalStory").href = "#article-" + a.id;
-    document.getElementById("modalLink").href = "https://www.youtube.com/watch?v=" + a.yt;
+    document.getElementById("player").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + yt +
+      '?autoplay=1&rel=0" title="' + esc(title) + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    document.getElementById("modalTitle").textContent = title;
+    var story = document.getElementById("modalStory");
+    story.hidden = !storyId;
+    if (storyId) story.href = "#article-" + storyId;
+    document.getElementById("modalLink").href = "https://www.youtube.com/watch?v=" + yt;
     modal.hidden = false;
     document.getElementById("modalClose").focus();
   }
