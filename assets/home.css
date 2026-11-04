@@ -1,9 +1,8 @@
 /*
- * AVING CES 메인(홈) 전용 스타일
+ * AVING CES 디자인 기본 + 홈 화면
  * ------------------------------------------------------------
- * 홈 화면일 때만 <html class="is-home"> 이 붙고, 이 파일의 새 헤더/푸터/본문이 보입니다.
- * 목록·기사 화면은 기존 style.css + ces.css 그대로 (GIF.News 디자인).
- * style.css 와 이름이 겹치지 않도록 클래스는 h- , 변수는 --h- 로 시작합니다.
+ * 색 · 글꼴 변수(--h-)와 헤더 · 푸터는 모든 화면이 같이 씀. 목록 · 기사 화면 본문은 pages.css.
+ * 클래스는 h- , 변수는 --h- 로 시작합니다.
  *
  * 색: 포인트 크림슨 #e11d48 (로고 오렌지 #ff6601 와 구분되는 진한 빨강), 로고 CES 남색 #3355d6, 검정 #15151d
  * 글꼴: Archivo (가변 폰트, 폭 62–125% · 굵기 300–800)
@@ -34,22 +33,11 @@
   --h-ease: cubic-bezier(.22, .8, .24, 1);
 }
 
-/* ---------- 홈 / 다른 화면 전환 ---------- */
-html.is-home .util, html.is-home .mast, html.is-home .gnb, html.is-home .foot { display: none; }
-html:not(.is-home) .h-hd, html:not(.is-home) .h-ft { display: none; }
-html.is-home body { background: var(--h-paper); color: var(--h-ink); font: 16px/1.55 var(--h-f); overflow-x: hidden; }
-html.is-home #app { max-width: none; padding: 0; }
-html.is-home :focus-visible { outline-color: var(--h-coral); outline-offset: 3px; }
-html.is-home .loading { color: var(--h-ink-3); }
-/* style.css 의 "링크 위 제목 = 파란색" 규칙을 홈에서는 빨강으로 */
-/* 링크 제목 hover: 글자색은 그대로 두고 밑줄 (큰 오렌지 글자는 읽기 어려워서) */
-html.is-home a:hover h1, html.is-home a:hover h3, html.is-home a:hover h4 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .14em; }
-html.is-home a.h-xcard:hover h3 { text-decoration: none; }
-/* 영상 팝업(기존 것 재사용)을 홈 톤으로 */
-html.is-home .modal { background: rgba(0, 0, 0, .9); }
-html.is-home .modal__box { background: var(--h-black-2); }
-html.is-home .modal__meta h3 { font-family: var(--h-f); font-weight: 600; }
-html.is-home .modal__meta a { color: var(--h-coral); font-family: var(--h-f); }
+/* ---------- 모든 화면 공통 (헤더 · 푸터 · 바탕) ---------- */
+body { background: var(--h-paper); color: var(--h-ink); font: 16px/1.55 var(--h-f); overflow-x: hidden; }
+#app { max-width: none; padding: 0; }
+/* 링크 제목 hover: 글자색은 그대로 두고 밑줄 (큰 포인트색 글자는 읽기 어려워서) — 규칙은 pages.css */
+a.h-xcard:hover h3 { text-decoration: none; }
 
 .h-wrap { max-width: var(--h-w); margin: 0 auto; padding-inline: var(--h-g); }
 
@@ -88,7 +76,9 @@ a:hover .h-go, button:hover .h-go { background: var(--h-coral); border-color: va
 .h-nav a { position: relative; padding: 8px 10px; font-size: 14.5px; font-weight: 500; color: var(--h-on-dark-2); white-space: nowrap; transition: color .2s; }
 .h-nav a::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 2px; height: 2px; background: var(--h-coral); transform: scaleX(0); transform-origin: left; transition: transform .35s var(--h-ease); }
 .h-nav a:hover { color: var(--h-on-dark); }
-.h-nav a:hover::after { transform: scaleX(1); }
+.h-nav a:hover::after, .h-nav a.on::after { transform: scaleX(1); }
+.h-nav a.on { color: var(--h-on-dark); }
+.h-menu a.on { color: var(--h-coral); }
 .h-hd__act { display: flex; align-items: center; gap: 8px; }
 .h-hd__act .h-btn { height: 38px; padding: 0 16px; font-size: 13.5px; }
 .h-hd__act .h-btn::after { content: none; }
@@ -260,7 +250,7 @@ a:hover .h-go, button:hover .h-go { background: var(--h-coral); border-color: va
 .h-xcard:hover::after { transform: scaleX(1); }
 .h-xcard .h-label { color: var(--h-coral); }
 .h-xcard h3 { font-size: 36px; line-height: 1; font-weight: 700; font-stretch: 75%; margin-top: 10px; }
-html.is-home a.h-xcard:hover h3 { color: #fff; }
+a.h-xcard:hover h3 { color: #fff; }
 .h-xcard p { margin-top: 12px; color: rgba(255,255,255,.8); max-width: 32ch; }
 .h-xcard .h-row { display: flex; justify-content: flex-end; margin-top: 20px; color: #fff; }
 

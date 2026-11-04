@@ -1,0 +1,167 @@
+/*
+ * AVING CES 공통 + 목록 · 기사 화면 스타일
+ * ------------------------------------------------------------
+ * 헤더 · 푸터 · 색 · 글꼴은 home.css 의 것(--h- 변수, h- 클래스)을 모든 화면이 같이 씀.
+ * 이 파일: 기본 초기화 · 영상 팝업 · 목록 화면(Latest, Video, Live Stage, 태그, 연도, 검색) · 기사 화면
+ * 목록 화면 구성 = 검은 제목 띠(.pg-head: 제목 + 설명 + 연도 칩) → 종이색 바탕 목록(.pg)
+ */
+
+/* ---------- 기본 ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; color-scheme: light; }
+body { margin: 0; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+:focus-visible { outline: 2px solid var(--h-coral); outline-offset: 3px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.loading { padding: 120px 0; color: var(--h-ink-3); text-align: center; }
+
+/* ---------- 영상 팝업 ---------- */
+.modal { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .9); display: grid; place-items: center; padding: 20px; font-family: var(--h-f); }
+.modal__box { position: relative; width: min(1040px, 100%); background: var(--h-black-2); color: var(--h-on-dark); }
+.modal__player { aspect-ratio: 16 / 9; background: #000; }
+.modal__player iframe { width: 100%; height: 100%; border: 0; display: block; }
+.modal__meta { display: flex; gap: 16px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; padding: 18px 22px; }
+.modal__meta h3 { font-size: 18px; line-height: 1.35; font-weight: 600; }
+.modal__links { display: flex; gap: 18px; }
+.modal__links a { font-size: 13.5px; font-weight: 600; color: var(--h-coral); }
+.modal__links a:hover { color: var(--h-coral-2); }
+.modal__x { position: absolute; right: 0; top: -44px; color: #fff; font-size: 34px; line-height: 1; padding: 2px 6px; }
+
+/* ---------- 목록 화면: 검은 제목 띠 ---------- */
+.pg-head { background: var(--h-black); color: var(--h-on-dark); padding-block: 88px 0; }
+.pg-head h1 { font-size: clamp(48px, 7.5vw, 112px); line-height: .92; font-weight: 300; letter-spacing: -.035em; margin-top: 14px; }
+.pg-head h1 b { font-weight: 700; font-stretch: 75%; color: var(--h-coral); letter-spacing: -.015em; }
+.pg-head p { max-width: 620px; margin-top: 20px; font-size: 17px; color: var(--h-on-dark-2); }
+.pg-head__bar { margin-top: 48px; padding-block: 16px 20px; border-top: 1px solid var(--h-line-dark); }
+.pg-head__bar:empty { padding: 0 0 48px; border: 0; margin: 0; }
+/* 연도 · 분류 칩 */
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs a { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 13px; border: 1px solid var(--h-line-dark); border-radius: 2px; font-size: 13.5px; font-weight: 600; color: var(--h-on-dark-2); font-variant-numeric: tabular-nums; transition: border-color .2s, color .2s, background .2s; }
+.tabs a:hover { border-color: var(--h-on-dark-2); color: var(--h-on-dark); }
+.tabs a.on { background: var(--h-coral); border-color: var(--h-coral); color: #fff; }
+.tabs small { font-size: 11.5px; font-weight: 500; opacity: .7; }
+
+/* ---------- 목록 화면: 종이색 본문 ---------- */
+.pg { padding-block: 64px 120px; }
+.empty { padding: 40px 0; font-size: 17px; color: var(--h-ink-2); }
+.empty a { color: var(--h-coral-text); font-weight: 600; }
+
+/* 이미지 틀 (이미지가 없으면 그 기사의 행사 연도 "CES 2011" 을 글자로) */
+.ph { display: block; position: relative; overflow: hidden; aspect-ratio: 16 / 10; border-radius: 4px; background: #e4e2dd; }
+.ph img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--h-ease); }
+.ph--none::after { content: attr(data-y); position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; font-weight: 700; font-stretch: 75%; color: #b3b0a8; }
+a:hover .ph img, .vid:hover .ph img { transform: scale(1.05); }
+.ph--video .vid__play { position: absolute; left: 0; bottom: 0; display: grid; place-items: center; width: 44px; height: 44px; background: rgba(15, 15, 18, .78); transition: background .25s; }
+.ph--video .vid__play::after { content: ""; margin-left: 3px; border-left: 13px solid #fff; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+a:hover .vid__play, .vid:hover .vid__play { background: var(--h-coral); }
+
+/* 기사 위 작은 줄: CES 연도 + Award */
+.tag { font-size: 13px; font-weight: 600; color: var(--h-ink-3); }
+.tag--new { color: var(--h-coral-text); }
+.tag--award { margin-left: 8px; padding: 2px 7px; border-radius: 2px; background: var(--h-gold); color: #1d1500; font-size: 11px; font-weight: 700; }
+.meta { display: block; font-size: 13px; color: var(--h-ink-3); font-variant-numeric: tabular-nums; }
+
+/* 기사 목록 */
+.list li { border-bottom: 1px solid var(--h-line); }
+.list li:first-child a { padding-top: 0; }
+.list a { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; padding-block: 28px; align-items: start; }
+.list__t { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.list h3 { font-size: 23px; line-height: 1.25; font-weight: 600; letter-spacing: -.01em; }
+.list p { color: var(--h-ink-2); max-width: 72ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+a:hover h1, a:hover h3, a:hover h4 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .14em; }
+
+/* 영상 목록 */
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 48px 24px; }
+.vid { display: grid; gap: 12px; width: 100%; align-content: start; }
+.vid .ph { aspect-ratio: 16 / 9; border-radius: var(--h-r); background: var(--h-black-3); }
+.vid__t { font-size: 17px; line-height: 1.35; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vid:hover .vid__t { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .14em; }
+
+/* 더 보기 */
+.pager { display: flex; justify-content: center; padding-top: 56px; }
+.pager__btn { display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 28px; border: 1px solid var(--h-ink); border-radius: 2px; font-size: 15px; font-weight: 600; text-align: center; transition: background .2s, color .2s; }
+.pager__btn:hover { background: var(--h-ink); color: var(--h-paper); }
+.pager__btn:disabled { opacity: .5; cursor: progress; }
+
+/* ---------- 기사 화면 ---------- */
+.art { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 80px; padding-block: 72px 120px; }
+.art__main { min-width: 0; max-width: 780px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 13px; font-weight: 600; color: var(--h-ink-3); }
+.crumbs a { color: var(--h-coral-text); }
+.crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.art__main > h1 { font-size: clamp(32px, 4.2vw, 58px); line-height: 1.04; font-weight: 700; font-stretch: 80%; letter-spacing: -.02em; margin-top: 18px; }
+.art__dek { font-size: 20px; line-height: 1.55; color: var(--h-ink-2); margin-top: 22px; }
+.art__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 28px; padding-block: 14px; border-block: 1px solid var(--h-line); font-size: 13.5px; color: var(--h-ink-3); font-variant-numeric: tabular-nums; }
+.art__meta a { margin-left: auto; color: var(--h-coral-text); font-weight: 600; }
+.art__meta a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.art__main > figure { margin: 32px 0 0; }
+.art__main > figure .ph { border-radius: var(--h-r); }
+.art__video { margin-top: 32px; }
+.art__ytframe { aspect-ratio: 16 / 9; max-width: 100%; background: #000; border-radius: var(--h-r); overflow: hidden; }
+.art__ytframe iframe { width: 100%; height: 100%; border: 0; display: block; }
+.art__body { margin-top: 36px; font-size: 18px; line-height: 1.75; display: grid; gap: 22px; }
+.art__body p { max-width: 68ch; }
+.art__body h2 { font-size: 24px; line-height: 1.3; font-weight: 700; margin-top: 14px; }
+.art__body figure { margin: 8px 0; }
+.art__body figure img { width: 100%; height: auto; border-radius: 4px; background: #e4e2dd; }
+.art__body figcaption { font-size: 13.5px; line-height: 1.5; color: var(--h-ink-3); margin-top: 10px; }
+.art__cta a { display: inline-flex; align-items: center; height: 48px; padding: 0 22px; background: var(--h-coral); color: #fff; border-radius: 2px; font-size: 15px; font-weight: 600; transition: background .2s; }
+.art__cta a:hover { background: var(--h-coral-2); }
+.art__src { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--h-line); font-size: 13.5px; color: var(--h-ink-3); }
+.art__src a { color: var(--h-coral-text); font-weight: 600; }
+.art__back { display: inline-block; margin-top: 18px; font-size: 15px; font-weight: 600; }
+.art__back:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* 기사 옆: 같은 CES 기사 */
+.side__box { position: sticky; top: 100px; padding: 32px 28px; background: var(--h-white); border-radius: var(--h-r); }
+.side__h { font-size: 13px; font-weight: 600; color: var(--h-coral-text); margin-bottom: 18px; }
+.rows li + li { border-top: 1px solid var(--h-line); }
+.rows a { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; padding-block: 18px; align-items: start; }
+.rows li:first-child a { padding-top: 0; }
+.rows li:last-child a { padding-bottom: 0; }
+.rows .ph { aspect-ratio: 4 / 3; }
+.rows .ph--none::after { font-size: 13px; }
+.rows .ph--video .vid__play { width: 28px; height: 28px; }
+.rows .ph--video .vid__play::after { margin-left: 2px; border-left-width: 9px; border-top-width: 6px; border-bottom-width: 6px; }
+.rows div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rows h4 { font-size: 15px; line-height: 1.35; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.rows .tag { font-size: 12px; }
+.rows .meta { font-size: 12px; }
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 1100px) {
+  .art { grid-template-columns: 1fr; gap: 56px; }
+  .art__main { max-width: none; }
+  .side__box { position: static; }
+}
+@media (max-width: 760px) {
+  .pg-head { padding-top: 56px; }
+  .pg-head p { font-size: 16px; }
+  .pg-head__bar { margin-top: 36px; }
+  .pg-head__bar:empty { padding-bottom: 36px; }
+  /* 칩은 한 줄로 옆으로 넘김 (연도가 21개라 여러 줄이면 목록이 너무 아래로 밀림) */
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--h-g) * -1); padding-inline: var(--h-g); }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs a { flex: none; }
+  .pg { padding-block: 40px 80px; }
+  .list a { grid-template-columns: 112px minmax(0, 1fr); gap: 16px; padding-block: 20px; }
+  .list .ph { aspect-ratio: 4 / 3; }
+  .list h3 { font-size: 17px; line-height: 1.35; }
+  .list p { display: none; }
+  .vgrid { gap: 36px; }
+  .art { padding-block: 40px 80px; }
+  .art__dek { font-size: 17px; }
+  .art__body { font-size: 17px; }
+  .art__meta a { margin-left: 0; }
+  .side__box { padding: 24px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ph img { transition: none; }
+  a:hover .ph img, .vid:hover .ph img { transform: none; }
+}

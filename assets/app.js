@@ -103,7 +103,7 @@
       ph(a) + '<span class="vid__t">' + esc(short(a.t)) + '</span><span class="meta">CES ' + a.y + " · " + day(a) + "</span></button>";
   }
   function row(a) {
-    return "<li>" + link(a, ph(a, "ph--row") + "<div>" + kicker(a) + "<h4>" + esc(short(a.t)) + "</h4>" + meta(a) + "</div>") + "</li>";
+    return "<li>" + link(a, ph(a, "ph--row") + "<div><span>" + kicker(a) + "</span><h4>" + esc(short(a.t)) + "</h4>" + meta(a) + "</div>") + "</li>";
   }
   function card(a) {
     return '<article class="card">' + link(a, ph(a) + "<div>" + kicker(a) + "</div><h4>" + esc(short(a.t)) + "</h4>" + meta(a)) + "</article>";
@@ -116,9 +116,13 @@
     var m = menuOf[key] || {};
     return '<div class="sec"><h2>' + esc(title || m.name) + "</h2><span>" + esc(sub || m.desc) + '</span><a class="more" href="#' + (more || key) + '">More →</a></div>';
   }
-  function pageHead(title, sub) {
-    return '<div class="page__head"><h1>' + esc(title) + "</h1><span>" + esc(sub) + "</span></div>";
+  // 목록 화면 위 검은 제목 띠: 제목(마지막 단어는 굵은 포인트색) + 설명 + 연도 칩(bar)
+  function pageHead(title, sub, bar) {
+    var w = esc(title).split(" "), last = w.pop();
+    return '<header class="pg-head"><div class="h-wrap"><h1>' + (w.length ? w.join(" ") + " " : "") + "<b>" + last + "</b></h1>" +
+      "<p>" + esc(sub) + '</p><div class="pg-head__bar">' + (bar || "") + "</div></div></header>";
   }
+  function page(head, body) { return head + '<div class="h-wrap pg">' + body + "</div>"; }
   function yearTabs(active) {
     return '<div class="tabs" role="tablist">' + META.years.map(function (o) {
       return '<a role="tab" href="#year-' + o.y + '" class="' + (o.y === active ? "on" : "") + '" aria-selected="' + (o.y === active) + '">' +
@@ -290,9 +294,8 @@
     });
   }
 
-  /* 홈을 그린 뒤 붙이는 움직임 */
-  function homeInit() {
-    // 스크롤 등장 + 들어올 때 숫자 올리기
+  /* 스크롤 등장 + 들어올 때 숫자 올리기 (모든 화면: 푸터 큰 글자도 이걸로 나타남) */
+  function reveal() {
     var els = document.querySelectorAll(".h-rv:not(.is-in)");
     if (reduceMotion || !("IntersectionObserver" in window)) {
       els.forEach(function (el) { el.classList.add("is-in"); });
@@ -308,6 +311,10 @@
       }, { threshold: .15, rootMargin: "0px 0px -40px 0px" });
       els.forEach(function (el) { io.observe(el); });
     }
+  }
+  /* 홈을 그린 뒤 붙이는 움직임 */
+  function homeInit() {
+    reveal();
     // 히어로 숫자
     setTimeout(function () {
       document.querySelectorAll("[data-count]").forEach(function (el) { countTo(el, +el.getAttribute("data-count"), 1800); });
@@ -515,18 +522,18 @@
     ["-aM5oH5ikIU", "Shield AI"]
   ];
   function livePage() {
-    return '<div class="page">' + pageHead("Live Stage", LIVE.length + " interviews from the AVING SPACE STUDIO · CES " + LIVE_YEAR) +
+    return page(pageHead("Live Stage", LIVE.length + " interviews from the AVING SPACE STUDIO · CES " + LIVE_YEAR),
       '<div class="vgrid">' + LIVE.map(function (v) {
         return '<button class="vid" data-live="' + esc(v[0]) + '"><span class="ph ph--video"><img src="https://i.ytimg.com/vi/' + esc(v[0]) +
           '/hqdefault.jpg" alt="" loading="lazy"><span class="vid__play" aria-hidden="true"></span></span>' +
           '<span class="vid__t">' + esc(v[1]) + '</span><span class="meta">CES ' + LIVE_YEAR + " · AVING SPACE STUDIO</span></button>";
       }).join("") + '</div><div class="pager"><a class="pager__btn" href="https://www.youtube.com/playlist?list=' + LIVE_LIST +
-      '" target="_blank" rel="noopener">Full CES ' + LIVE_YEAR + " playlist on YouTube ↗</a></div></div>";
+      '" target="_blank" rel="noopener">Full CES ' + LIVE_YEAR + " playlist on YouTube ↗</a></div>");
   }
 
   /* ---------- 목록 화면 ---------- */
   function latestPage() {
-    return '<div class="page">' + pageHead("Latest", stories(IDX.length) + ", newest first") + pagedList(IDX) + "</div>";
+    return page(pageHead("Latest", stories(IDX.length) + ", newest first"), pagedList(IDX));
   }
   function videoPage(y) {
     var list = IDX.filter(function (a) { return a.yt && (!y || a.y === y); });
@@ -535,8 +542,8 @@
         return '<a href="#video-' + o.y + '" class="' + (o.y === y ? "on" : "") + '">' + o.y + " <small>" + o.v + "</small></a>";
       }).join("") + "</div>";
     vpager = { items: list, shown: 0 };
-    return '<div class="page">' + pageHead("Video", num(list.length) + " videos" + (y ? " from CES " + y : "") + " · AVING on YouTube") + chips +
-      '<div class="vgrid" id="vgrid"></div><div class="pager"><button class="pager__btn" id="vmore" hidden>More videos</button></div></div>';
+    return page(pageHead("Video", num(list.length) + " videos" + (y ? " from CES " + y : "") + " · AVING on YouTube", chips),
+      '<div class="vgrid" id="vgrid"></div><div class="pager"><button class="pager__btn" id="vmore" hidden>More videos</button></div>');
   }
   var vpager = null;
   function videoMore() {
@@ -550,8 +557,8 @@
   }
   function yearPage(y) {
     var ya = IDX.filter(function (a) { return a.y === y; });
-    return '<div class="page">' + pageHead("CES " + y, stories(ya.length) + " · filed by CES edition, not publish date") +
-      yearTabs(y) + (ya.length ? pagedList(ya) : '<p class="empty">Nothing for ' + y + " yet.</p>") + "</div>";
+    return page(pageHead("CES " + y, stories(ya.length) + " · filed by CES edition, not publish date", yearTabs(y)),
+      ya.length ? pagedList(ya) : '<p class="empty">Nothing for ' + y + " yet.</p>");
   }
   function tagPage(tag) {
     var m = menuOf["tag-" + tag] || { name: tag, desc: "" };
@@ -561,7 +568,7 @@
       var n = list.filter(function (a) { return a.y === o.y; }).length;
       return '<a href="#tag-' + tag + '" data-jump="' + o.y + '">CES ' + o.y + " <small>" + n + "</small></a>";
     }).join("") + "</div>";
-    return '<div class="page">' + pageHead(m.name, stories(list.length) + " · " + m.desc) + chips + pagedList(list) + "</div>";
+    return page(pageHead(m.name, stories(list.length) + " · " + m.desc, chips), pagedList(list));
   }
   function searchPage(q) {
     var words = q.toLowerCase().split(/\s+/).filter(Boolean);
@@ -569,8 +576,8 @@
       var t = (a.t + " " + a.by).toLowerCase();
       return words.every(function (w) { return t.indexOf(w) > -1; });
     });
-    return '<div class="page">' + pageHead("Search: " + q, stories(res.length) + " · titles and bylines") +
-      (res.length ? pagedList(res) : '<p class="empty">No matches. Try a company name, “Seoul Pavilion” or “Innovation Award”.</p>') + "</div>";
+    return page(pageHead("Search: " + q, stories(res.length) + " · titles and bylines"),
+      res.length ? pagedList(res) : '<p class="empty">No matches. Try a company name, “Seoul Pavilion” or “Innovation Award”.</p>');
   }
 
   /* ---------- 기사 상세 ---------- */
@@ -598,7 +605,7 @@
   }
   function articlePage(id) {
     var a = byId[id];
-    if (!a) return Promise.resolve('<div class="page"><p class="empty">This story could not be found. <a href="#latest">See the latest stories →</a></p></div>');
+    if (!a) return Promise.resolve('<div class="h-wrap pg"><p class="empty">This story could not be found. <a href="#latest">See the latest stories →</a></p></div>');
     // 관련 기사: 같은 연도 + 같은 태그 → 같은 연도
     var others = IDX.filter(function (x) { return x !== a && x.y === a.y; });
     var sameTag = others.filter(function (x) { return x.tags.some(function (t) { return has(a, t); }); });
@@ -616,7 +623,7 @@
       var body = b.length ? b.map(block).join("") :
         (lead(a) ? "<p>" + esc(lead(a)) + "</p>" : "") +
         '<p class="art__cta"><a href="' + AVING + a.id + '" target="_blank" rel="noopener">Read the full story on AVING USA ↗</a></p>';
-      return '<div class="art">' +
+      return '<div class="h-wrap art">' +
         '<article class="art__main">' +
           '<nav class="crumbs" aria-label="Categories">' + crumbs.join('<span aria-hidden="true">/</span>') + "</nav>" +
           "<h1>" + esc(a.t) + "</h1>" +
@@ -644,8 +651,6 @@
       var href = m.key === "year" ? "year-" + newest() : m.key;
       return '<a href="#' + href + '" data-key="' + m.key + '">' + esc(m.name) + "</a>";
     }).join("");
-    document.getElementById("gnb").innerHTML = html;
-    document.getElementById("footNav").innerHTML = html;
     document.getElementById("hNav").innerHTML = html;
     document.getElementById("hMenuNav").innerHTML = html;
     document.getElementById("hFootNav").innerHTML = MENU.map(function (m) {
@@ -653,11 +658,10 @@
     }).join("");
   }
   function markNav(key) {
-    document.querySelectorAll("#gnb a").forEach(function (a) {
+    document.querySelectorAll("#hNav a, #hMenuNav a").forEach(function (a) {
       var on = a.getAttribute("data-key") === key;
       a.classList.toggle("on", on);
-      if (on) { a.setAttribute("aria-current", "page"); a.scrollIntoView({ block: "nearest", inline: "nearest" }); }
-      else a.removeAttribute("aria-current");
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
   }
 
@@ -678,18 +682,17 @@
     }
     else if (base === "tag" && TAG_NAME[arg]) { out = tagPage(arg); key = "tag-" + arg; }
     else if (base === "article") { out = articlePage(parseInt(arg, 10)); key = null; }
-    else if (base === "search") { document.getElementById("q").value = arg; out = searchPage(arg); key = null; }
+    else if (base === "search") { document.getElementById("hq").value = arg; out = searchPage(arg); key = null; }
     else { out = home(); key = ""; }
 
     var my = ++seq;
     Promise.resolve(out).then(function (html) {
       if (my !== seq) return;            // 그 사이 다른 화면으로 이동했으면 무시
-      document.documentElement.classList.toggle("is-home", key === "");   // 홈이면 새 헤더/푸터 (assets/home.css)
       app.innerHTML = html;
       setPageMeta(base === "article" ? byId[parseInt(arg, 10)] : null);
       markNav(key);
       window.scrollTo(0, 0);
-      if (key === "") homeInit();
+      if (key === "") homeInit(); else reveal();
       if (pager) pageMore();
       if (vpager) videoMore();
     });
@@ -761,21 +764,12 @@
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) closeVideo(); });
   document.getElementById("modalStory").addEventListener("click", closeVideo);
 
-  /* ---------- 검색 ---------- */
-  document.getElementById("searchForm").addEventListener("submit", function (e) {
-    e.preventDefault();
-    var q = document.getElementById("q").value.trim();
-    location.hash = q ? "search-" + encodeURIComponent(q) : "";
-  });
-
   /* ---------- 시작 ---------- */
-  document.getElementById("today").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   Promise.all([getJSON("data/meta.json"), getJSON("data/search.json")]).then(function (r) {
     META = r[0];
     // [id, 제목, 날짜, 연도, 썸네일, 기자, 태그] → 객체로
     IDX = r[1].map(function (x) { return { id: x[0], t: x[1], d: x[2], y: x[3], img: x[4], by: x[5], tags: x[6] || [], yt: x[7] || "", v: x[8] || 0, sec: x[9] || "" }; });
     IDX.forEach(function (a) { byId[a.id] = a; });
-    document.getElementById("updated").textContent = META.updated;
     document.getElementById("hUpdated").textContent = META.updated;
     // 푸터 로고 아래 줄: 데이터 기준으로 (예: 2006–2027 · 5,097 CES stories · 21 years of coverage)
     var y0 = META.years[META.years.length - 1].y;
@@ -785,7 +779,7 @@
     window.addEventListener("hashchange", route);
     route();
   }).catch(function (err) {
-    app.innerHTML = '<div class="page"><p class="empty">Could not load the story data (' + esc(err.message) + ').<br>' +
+    app.innerHTML = '<div class="h-wrap pg"><p class="empty">Could not load the story data (' + esc(err.message) + ').<br>' +
       "If you opened index.html by double-clicking, open it through a local web server instead (see README).</p></div>";
   });
 })();

@@ -1,6 +1,6 @@
 # CES Archive (시안 2차: 구글 시트 5,097건 적용)
 
-GIF.News 디자인을 그대로 가져와 **us.aving.net의 CES 기사 전체를 CES 행사 연도별로** 보여주는 사이트입니다.
+**us.aving.net의 CES 기사 전체를 CES 행사 연도별로** 보여주는 사이트입니다.
 DB 없이 JSON 파일만 쓰고, 기사 5,000건 이상이어도 필요한 파일만 나눠 읽도록 만들었습니다.
 
 ## 바로 보기
@@ -12,9 +12,8 @@ JSON을 `fetch`로 읽기 때문에 **index.html 더블클릭으로는 열리지
 ```
 CES/
 ├─ index.html            페이지 뼈대
-├─ assets/style.css      GIF.News 디자인 그대로 (GIF에서 고치면 복사만 하면 됨)
-├─ assets/ces.css        CES 사이트에만 필요한 추가 스타일 (글자 로고, 더보기 버튼 등)
-├─ assets/home.css       메인(홈) 화면 전용 디자인 (블랙 · 로고 빨강 #ed3840 · Archivo 폰트)
+├─ assets/home.css       디자인 기본(색 · 글꼴 변수, 헤더 · 푸터) + 홈 화면 (블랙 · 크림슨 #e11d48 · Archivo 폰트)
+├─ assets/pages.css      기본 초기화 · 영상 팝업 · 목록 화면 · 기사 화면
 ├─ assets/app.js         화면 그리는 스크립트
 ├─ data/                 ← tools/build_data.py 가 자동으로 만드는 폴더 (직접 고치지 않음)
 │  ├─ meta.json          갱신 시각, 연도별·태그별 건수
@@ -61,10 +60,9 @@ GIF와 같은 방식(GitHub `tec-create/aving-ces` + Vercel `aving-ces`)입니�
 
 ## 주의
 - 사이트와 변환 스크립트는 에이빙 서버에 접속하지 않습니다. 썸네일·요약(`source/thumbs.json`)은 2026-10-27에 기사당 1.5초 간격으로 한 번 모아 둔 것이고, 새 기사의 사진은 관리자 엑셀(대표이미지 열)로 채우는 걸 권장합니다 (IP 차단 위험).
-- 메인(홈) 화면만 새 디자인입니다. 홈일 때 `<html class="is-home">` 이 붙어 `home.css` 의 새 헤더/푸터가 보이고, 목록·기사 화면은 기존 헤더/푸터와 GIF.News 디자인 그대로입니다. 홈 화면 내용은 `app.js` 의 `home()`, 애니메이션은 `homeInit()` 에 있습니다.
+- 모든 화면이 같은 헤더 · 푸터(`home.css`)를 씁니다. 목록 화면은 검은 제목 띠(제목 · 설명 · 연도 칩) 아래 종이색 목록, 기사 화면은 본문 + 오른쪽 "More from CES" 상자입니다 (`pages.css`). 홈 화면 내용은 `app.js` 의 `home()`, 애니메이션은 `homeInit()` 에 있습니다.
 - 로고: **AVING@CES** — AVING 오렌지 `#ff6601` · 흰 @ (바닥선 정렬) · CES 남색 `#3355d6`. 페이지 포인트 색은 `home.css` 의 `--h-coral: #e11d48` (크림슨).
-  - 홈 헤더 · 푸터: 워드마크 `assets/logo-mark-at-dark.png` 하나를 같이 씀. 푸터는 그 아래 오렌지 선 · CES DISCOVERY HUB · 숫자 줄 · 고지 문구를 텍스트로 붙여 왼쪽 정렬.
-  - 목록·기사 화면: 워드마크 + 선 + 문구를 묶은 `assets/logo-header.png`(투명 배경, 828×267) 하나를 상단(폭 250px)과 푸터(높이 80px, 모바일 72px)에 같이 씀. 크기는 `ces.css`의 `.brand` 에서 조절.
+  - 헤더 · 푸터 (모든 화면): 워드마크 `assets/logo-mark-at-dark.png` 하나를 같이 씀. 푸터는 그 아래 포인트색 선 · CES DISCOVERY HUB · 숫자 줄 · 고지 문구를 텍스트로 붙여 왼쪽 정렬.
   - 공유 이미지: `assets/og-image.png` (1200×630, 같은 묶음). 바꾸면 `index.html` 의 `og:image` 주소 끝 `?v=` 숫자를 올려 SNS 캐시를 갱신.
-  - 예전 로고(`logo-aving-ces-*.png`, `logo-mark-*.png`)는 원본 보관용으로 남겨 둠 (지금은 쓰지 않음).
+  - 예전 로고(`logo-aving-ces-*.png`, `logo-mark-*.png`)와 예전 목록 화면용 묶음 로고(`logo-header.png`)는 보관용으로 남겨 둠 (지금은 쓰지 않음).
 - CES® 로고는 CTA 상표라 사용하지 않았습니다.
