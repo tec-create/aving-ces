@@ -180,7 +180,7 @@
   }
   function home() {
     var ny = newest();
-    var vids = IDX.filter(function (a) { return a.yt; });
+    var vids = IDX.filter(function (a) { return a.cv; });
     var feat = vids.filter(function (a) { return a.img; })[0] || vids[0];          // 대표 영상: 사진이 있는 최신 영상 기사
     var latest = IDX.filter(function (a) { return thumb(a); }).slice(0, 5);
     var aw = IDX.filter(function (a) { return has(a, "awards") && thumb(a) && latest.indexOf(a) < 0; });
@@ -380,7 +380,7 @@
         var al = (.06 + wave * .1) * mask + near * .5;
         ctx.fillStyle = k === hoverK ? "#fff" :
           has(a, "awards") ? "rgba(232,176,35," + Math.min(1, al * 3.2) + ")" :
-          a.yt ? vidRGB + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
+          a.cv ? vidRGB + Math.min(1, al * 2.6) + ")" : "rgba(243,242,239," + al + ")";
         ctx.fillRect(x, y, S, S);
       }
     }
@@ -536,7 +536,7 @@
     return page(pageHead("Latest", stories(IDX.length) + ", newest first"), pagedList(IDX));
   }
   function videoPage(y) {
-    var list = IDX.filter(function (a) { return a.yt && (!y || a.y === y); });
+    var list = IDX.filter(function (a) { return a.cv && (!y || a.y === y); });
     var chips = '<div class="tabs"><a href="#video" class="' + (y ? "" : "on") + '">All <small>' + num(META.videos) + "</small></a>" +
       META.years.filter(function (o) { return o.v; }).map(function (o) {
         return '<a href="#video-' + o.y + '" class="' + (o.y === y ? "on" : "") + '">' + o.y + " <small>" + o.v + "</small></a>";
@@ -770,6 +770,13 @@
     // [id, 제목, 날짜, 연도, 썸네일, 기자, 태그] → 객체로
     IDX = r[1].map(function (x) { return { id: x[0], t: x[1], d: x[2], y: x[3], img: x[4], by: x[5], tags: x[6] || [], yt: x[7] || "", v: x[8] || 0, sec: x[9] || "" }; });
     IDX.forEach(function (a) { byId[a.id] = a; });
+    // CES 영상: 영상이 있는 기사 중 제목에 CES 가 있거나, 행사 기간 전후(전년 12월~2월)에 쓴 기사만.
+    // 본문에서 "CES 2027 참가 예정" 정도로만 언급한 기사(영상은 KES·FIX 등 다른 전시회)는 홈 영상 띠·Video 메뉴에서 뺍니다.
+    IDX.forEach(function (a) {
+      a.cv = !!a.yt && (/\bCES\b/.test(a.t) || (a.d >= (a.y - 1) + "-12-01" && a.d <= a.y + "-02-28 99"));
+    });
+    META.videos = IDX.filter(function (a) { return a.cv; }).length;
+    META.years.forEach(function (o) { o.v = IDX.filter(function (a) { return a.cv && a.y === o.y; }).length; });
     document.getElementById("hUpdated").textContent = META.updated;
     // 푸터 로고 아래 줄: 데이터 기준으로 (예: 2006–2027 · 5,097 CES stories · 21 years of coverage)
     var y0 = META.years[META.years.length - 1].y;

@@ -1,0 +1,52 @@
+# 매일 us.aving.net 의 새 CES 기사를 찾아 사이트에 반영합니다.
+#   - 매일 06:47 (한국 시간) 자동 실행. GitHub → Actions → "Daily CES update" → "Run workflow" 로 바로 실행도 가능
+#   - 새 CES 기사가 있으면 data/ 를 다시 만들고 main 에 커밋 → Vercel 이 자동 배포
+#   - 서버 보호: 요청 사이 2초, 한 번에 하나씩, 403/429 면 즉시 중단 (tools/update_latest.py)
+name: Daily CES update
+
+on:
+  schedule:
+    - cron: "47 21 * * *"   # UTC 21:47 = 한국 06:47
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install beautifulsoup4
+
+      - name: Find new CES articles
+        id: crawl
+        run: python tools/update_latest.py
+
+      - name: Rebuild site data
+        if: steps.crawl.outputs.added != '0'
+        run: python tools/build_data.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source/auto source/bodies data
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+            exit 0
+          fi
+          git commit -m "Daily update: ${{ steps.crawl.outputs.added }} new CES article(s)"
+          git pull --rebase
+          git push

@@ -66,3 +66,17 @@ GIF와 같은 방식(GitHub `tec-create/aving-ces` + Vercel `aving-ces`)입니�
   - 공유 이미지: `assets/og-image.png` (1200×630, 같은 묶음). 바꾸면 `index.html` 의 `og:image` 주소 끝 `?v=` 숫자를 올려 SNS 캐시를 갱신.
   - 예전 로고(`logo-aving-ces-*.png`, `logo-mark-*.png`)와 예전 목록 화면용 묶음 로고(`logo-header.png`)는 보관용으로 남겨 둠 (지금은 쓰지 않음).
 - CES® 로고는 CTA 상표라 사용하지 않았습니다.
+
+## 매일 자동 업데이트 (GitHub Actions)
+`.github/workflows/daily-update.yml` 이 **매일 06:47(한국 시간)** GitHub 서버에서 실행됩니다. PC를 켜 둘 필요가 없습니다.
+1. `tools/update_latest.py` 가 us.aving.net 에서 "CES" 검색 목록을 읽고, 지난번 확인한 기사번호(`source/auto/state.json`)보다 새 기사를 하나씩 엽니다 (요청 간격 2초, 403/429 면 즉시 중단).
+2. 제목에 CES 가 있거나, 본문에 "CES 2027" 처럼 현재 최신 CES 이상 연도가 나오면 CES 기사로 판정해
+   `source/auto/articles.json`(목록)과 `source/bodies/ces_body_auto.json`(본문)에 추가합니다.
+3. 새 기사가 있으면 `tools/build_data.py` 로 `data/` 를 다시 만들고 main 에 커밋 → Vercel 이 자동 배포합니다.
+
+- 바로 실행: GitHub 저장소 → **Actions** → *Daily CES update* → **Run workflow**
+- 실행 결과·추가된 기사 목록: Actions 의 각 실행 기록 → *Find new CES articles* 단계
+- 자동으로 잘못 들어간 기사는 `source/auto/articles.json` 에서 그 줄을 지우고 `python tools/build_data.py` 후 커밋하면 됩니다.
+- 자동 추가분은 구글 시트와 따로 보관하므로, 시트를 다시 내려받아 `source/` 에 넣어도 사라지지 않습니다.
+- 봇이 매일 커밋하므로 **PC에서 작업하기 전에 항상 `git pull`** 을 먼저 하세요.
+- `vercel.json` 의 `ignoreCommand`: `source/`, `tools/`, `.github/`, README 만 바뀐 커밋은 Vercel 이 배포를 건너뜁니다.

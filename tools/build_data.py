@@ -256,6 +256,15 @@ def main():
     srcs = sys.argv[1:] or [find_source()]
     print("기본 목록:", srcs[0])
     rows = read_file(srcs[0])
+    # source/auto/articles.json: 매일 자동 업데이트(tools/update_latest.py)가 찾은 기사
+    # 구글 시트와 따로 보관하므로 시트를 다시 받아도 사라지지 않음 (같은 기사가 시트에도 있으면 시트 쪽을 씀)
+    ap = os.path.join(ROOT, "source", "auto", "articles.json")
+    if os.path.exists(ap):
+        auto = json.load(open(ap, encoding="utf-8"))
+        for a in auto:
+            rows.append({"id": a["id"], "title": a["t"], "sec": a.get("sec"), "by": a.get("by"), "date": a["d"],
+                         "yt": a.get("yt"), "img": a.get("img"), "_y": a.get("y")})
+        print("자동 추가 기사: %d건" % len(auto))
     is_sample = srcs[0].endswith(".json")
 
     # 보충용 파일: 같은 기사번호의 이미지·요약·본문만 채움

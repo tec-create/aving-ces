@@ -6,5 +6,6 @@
       "destination": "https://avingces.news/:path*",
       "permanent": true
     }
-  ]
+  ],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)source' ':(exclude)tools' ':(exclude).github' ':(exclude)README.md'"
 }
