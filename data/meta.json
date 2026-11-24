@@ -1,12 +1,12 @@
 {
- "updated": "2026-11-23 11:00 KST",
+ "updated": "2026-11-24 14:36 KST",
  "sample": false,
- "total": 5320,
+ "total": 5337,
  "videos": 865,
  "years": [
   {
    "y": 2027,
-   "n": 226,
+   "n": 243,
    "v": 8
   },
   {
@@ -116,7 +116,7 @@
   }
  ],
  "tags": {
-  "awards": 109,
+  "awards": 110,
   "pavilion": 45,
   "unveiled": 472,
   "interview": 35
